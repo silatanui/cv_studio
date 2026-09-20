@@ -23,16 +23,20 @@ from pipeline import run_cv_optimization_pipeline
 from extractor import extract_text_from_file
 from renderer import build_ats_friendly_docx, build_cover_letter_docx
 from schemas import TailoredResumeSchema, ContactInformation, CoverLetterSchema
-from optimizer import get_openai_client, safe_execute_with_retry, DEFAULT_MODEL
-from section_engine import (
-    recommend_sections_for_candidate,
-    audit_information_loss,
-    calculate_cv_quality_score,
+from optimizer import (
+    get_openai_client,
+    safe_execute_with_retry,
+    DEFAULT_MODEL,
     heuristic_parse_resume,
     parse_job_description,
     extract_structured_job_model,
     heuristic_generate_evidence_map,
-    mock_optimize_pipeline
+    mock_optimize_pipeline,
+)
+from section_engine import (
+    recommend_sections_for_candidate,
+    audit_information_loss,
+    calculate_cv_quality_score,
 )
 from mock_stress_data import get_29_section_stress_cv_payload
 
