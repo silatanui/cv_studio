@@ -173,9 +173,40 @@
     <main id="viewLandingPage" class="view-stage lp-wrapper">
         <!-- Hero Section -->
         <section class="lp-hero-wrapper">
+            <!-- Atmospheric Backdrop Image with Opacity & Fade-in -->
+            <div class="lp-hero-backdrop-layer">
+                <picture>
+                    <source srcset="static/hero-mockup.webp" type="image/webp">
+                    <img src="static/hero-mockup.png" alt="CV Studio Intelligent Resume Optimizer Interface" class="lp-hero-backdrop-img" width="1024" height="486" fetchpriority="high" decoding="async">
+                </picture>
+                <div class="lp-hero-backdrop-scrim"></div>
+                <!-- Moving ATS Scanner Laser Beam Motion Graphic -->
+                <div class="lp-motion-scan-beam" aria-hidden="true">
+                    <span class="lp-scanner-tag">ATS SCANNER ACTIVE: 94% MATCH</span>
+                </div>
+                <!-- Moving SVG Wave Flow Motion Graphic -->
+                <div class="lp-motion-waves" aria-hidden="true">
+                    <svg class="lp-motion-svg" viewBox="0 0 1440 320" fill="none" preserveAspectRatio="none">
+                        <path class="lp-wave-track lp-wave-1" d="M0,160 C360,240 540,80 720,160 C900,240 1080,80 1440,160" stroke="#334155" stroke-width="1.5" stroke-dasharray="6, 10" />
+                        <path class="lp-wave-track lp-wave-2" d="M0,100 C320,40 520,220 780,120 C1040,20 1240,200 1440,100" stroke="#1e293b" stroke-width="1.2" stroke-dasharray="10, 14" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Floating Live Telemetry Badges (Motion Graphics) -->
+            <div class="lp-floating-badge lp-badge-left" aria-hidden="true">
+                <span class="lp-float-indicator"></span>
+                <span class="lp-float-text">ATS Scored: <strong>94/100</strong> • 100% Grounded</span>
+            </div>
+            <div class="lp-floating-badge lp-badge-right" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span class="lp-float-text">Live Fact-Checking Engine Active</span>
+            </div>
+
+            <!-- Hero Text Content Layered On Top -->
             <div class="lp-hero-content">
                 <div class="lp-badge-pill">
-                    <span class="lp-badge-dot"></span>
+                    <span class="lp-badge-dot lp-radar-pulse"></span>
                     <span>AI-Powered Career Intelligence • 100% Free &amp; Private</span>
                 </div>
                 <h1 class="lp-hero-title">
@@ -217,11 +248,6 @@
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         Instant Word &amp; PDF Export
                     </span>
-                </div>
-
-                <!-- Hero Mockup Showcase Image -->
-                <div class="lp-hero-media-wrap">
-                    <img src="static/hero-mockup.png" alt="CV Studio Platform Interface Mockup" class="lp-hero-media-img" width="1024" height="572" loading="eager">
                 </div>
             </div>
         </section>
