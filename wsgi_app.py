@@ -10,6 +10,9 @@ import re
 import json
 import uuid
 import shutil
+import hmac
+import hashlib
+import subprocess
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 
@@ -98,6 +101,52 @@ def health_check():
         "model": DEFAULT_MODEL,
         "engine": "wsgi-native"
     })
+
+
+@app.route("/api/webhook", methods=["GET", "POST"])
+@app.route("/cv_studio/api/webhook", methods=["GET", "POST"])
+def cpanel_git_webhook():
+    """Webhook endpoint for GitHub to trigger git pull and restart passenger."""
+    if request.method == "GET":
+        return jsonify({
+            "status": "ready",
+            "message": "Git Webhook listener is active. Send a POST request to trigger deployment."
+        })
+
+    secret = os.environ.get("DEPLOY_SECRET")
+    if secret:
+        provided_secret = request.args.get("secret") or request.headers.get("X-Deploy-Secret")
+        sig_header = request.headers.get("X-Hub-Signature-256")
+        valid = False
+        if provided_secret and hmac.compare_digest(provided_secret, secret):
+            valid = True
+        elif sig_header and sig_header.startswith("sha256="):
+            computed = "sha256=" + hmac.new(secret.encode(), request.data, hashlib.sha256).hexdigest()
+            if hmac.compare_digest(computed, sig_header):
+                valid = True
+        if not valid:
+            return jsonify({"error": "Unauthorized: Invalid or missing secret"}), 403
+
+    try:
+        result = subprocess.run(
+            ["git", "pull", "origin", "main"],
+            cwd=str(BASE_DIR),
+            capture_output=True,
+            text=True,
+            timeout=120
+        )
+        restart_dir = BASE_DIR / "tmp"
+        restart_dir.mkdir(parents=True, exist_ok=True)
+        (restart_dir / "restart.txt").touch()
+
+        return jsonify({
+            "success": result.returncode == 0,
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+            "message": "Deployed and restarted successfully" if result.returncode == 0 else "Git pull failed"
+        }), (200 if result.returncode == 0 else 500)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/sample-data", methods=["GET"])
