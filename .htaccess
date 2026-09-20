@@ -1,0 +1,18 @@
+# cPanel / CloudLinux Passenger application configuration.
+# Setup Python App supplies the application root and virtualenv paths.
+PassengerAppType wsgi
+PassengerStartupFile passenger_wsgi.py
+
+# Optional: Rewrite rules for static files and media compression
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+</IfModule>
+
+# Security Headers & MIME Types
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>

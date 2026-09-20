@@ -1,0 +1,48 @@
+name: Deploy to cPanel (cv_studio)
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  # Option A: Deploy via cPanel Webhook (Zero credentials/keys needed)
+  deploy-webhook:
+    name: Trigger cPanel Git Deployment Webhook
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger cPanel Webhook
+        env:
+          CPANEL_WEBHOOK_URL: ${{ secrets.CPANEL_WEBHOOK_URL }}
+        run: |
+          if [ -n "$CPANEL_WEBHOOK_URL" ]; then
+            echo "Triggering cPanel Git deploy webhook..."
+            curl -s -X POST "$CPANEL_WEBHOOK_URL"
+            echo "cPanel deployment triggered successfully."
+          else
+            echo "CPANEL_WEBHOOK_URL secret not set. Skipping webhook trigger."
+          fi
+
+  # Option B: Deploy via SSH (if SSH is enabled on cPanel)
+  deploy-ssh:
+    name: Deploy via SSH to cPanel
+    runs-on: ubuntu-latest
+    if: false # Set to 'true' if using SSH deployment with GitHub Secrets
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.CPANEL_HOST }}
+          username: ${{ secrets.CPANEL_USER }}
+          key: ${{ secrets.CPANEL_SSH_KEY }}
+          port: ${{ secrets.CPANEL_PORT || 22 }}
+          script: |
+            cd /home/${{ secrets.CPANEL_USER }}/cv_studio
+            git pull origin main
+            mkdir -p tmp
+            touch tmp/restart.txt
+            echo "App reloaded on cPanel!"

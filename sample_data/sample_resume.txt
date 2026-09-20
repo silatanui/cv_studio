@@ -1,0 +1,64 @@
+SILA KIPNG'ETICH TANUI
+COMPUTER SCIENTIST | SYSTEMS SOFTWARE ENGINEER | SOFTWARE DEVELOPER
++362032336 | silatanuikipngetich@gmail.com | https://www.linkedin.com/in/tanui-kipngetich-sila/ | https://tanuisila.dev | Debrecen, Hungary
+
+SUMMARY
+MSc Computer Science graduate specializing in low-level systems and OS internals. Experienced in C/C++, Linux, memory management, and virtualization. Skilled at debugging, root-cause analysis, and performance optimization, with a working knowledge of Arm architecture, Python and C. Combines strong problem-solving with communication skills gained through development, technical support, and teaching.
+
+KEY ACHIEVEMENTS
+• High Customer Satisfaction: Maintained CSAT above 90% resolving customer, order, repair, and transaction issues accurately.
+• Student Enrollment Growth: Contributed to doubling enrollment from 50 to 105 students at Infolink College of Technology.
+• Academic Excellence: Graduated First Class Honours BSc and awarded fully funded Stipendium Hungaricum Scholarship for MSc.
+
+EXPERIENCE
+
+Customer Success Specialist | Enterprise Application & Customer Support
+Transcosmos (Fossil Group) - Debrecen, Hungary
+Oct 2025 - Feb 2026
+• Maintained a customer satisfaction (CSAT) score above 90% by resolving customer, order, repair, and transaction issues accurately and promptly.
+• Worked with SAP ERP, Salesforce Commerce Cloud, Adyen, and Computop in customer-facing e-commerce and payment workflows.
+• Validated customer and transaction data across systems, identified discrepancies, and partnered with internal teams on escalations and status updates.
+• Strengthened support efficiency by communicating investigation outcomes and resolution status clearly across teams.
+
+ICT and Programming Tutor
+Infolink College of Technology - Nairobi, Kenya
+Apr 2023 - Sep 2024
+• Contributed to doubling enrolment from the college's inaugural intake of 50 students to 105 students in the subsequent intake.
+• Diagnosed programming and application problems using structured debugging and problem-solving methods.
+• Created programming exercises and learning materials, and explained technical solutions clearly to users at different skill levels.
+
+IT Technician & Lecturer
+Litmed College of Technology - Kerugoya, Kenya
+Sep 2022 - Mar 2023
+• Provided day-to-day IT support and technical assistance, helping users resolve issues and maintain reliable operations.
+• Guided students and users through technical instruction, feedback, and practical problem-solving.
+• Taught IT students practical lessons in computer applications and technical problem-solving.
+
+CORE SKILLS
+• Low-Level Systems Development: C, C++, Python, Linux internals, memory management, process scheduling, virtualization, Arm architecture
+• Systems Performance & Debugging: Low-level debugging, root-cause analysis, performance optimization, security-focused development, system integration
+• Software Engineering Tools: Linux, Git/GitHub, Python, Docker, Kubernetes, code review, collaborative development
+• Additional Development: Rust (basic familiarity), C#, .NET, ASP.NET Core, REST APIs, SQL, object-oriented design
+
+EDUCATION
+
+MSc Computer Science (Final grade: 4.39/5.00)
+University of Debrecen | 2024 - 2026
+
+BSc Computer Science (First Class Honors)
+Kirinyaga University | 2018 - 2022
+
+SELECTED ACADEMIC WORK
+• AI-Driven E-Commerce Automation Using Blazor Web Framework: Master's thesis exploring AI integration and e-commerce automation using the Blazor web framework.
+
+AWARDS & SCHOLARSHIPS
+• Stipendium Hungaricum Scholarship: Fully funded scholarship for MSc studies in Computer Science at the University of Debrecen, Hungary.
+• First Class Honours - Bachelor of Science in Computer Science, Kirinyaga University, Kenya.
+
+LANGUAGES
+• English: C1 - Proficient
+• Swahili: C2 - Proficient
+• Hungarian: A1 - Basic
+
+REFEREES
+Available upon Request

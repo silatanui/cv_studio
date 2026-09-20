@@ -1,0 +1,18 @@
+
+SILA KIPNG'ETICH TANUI
+Software Developer & Systems Engineer
+Email: silatanuikipngetich@gmail.com | Phone: +36 20 123 4567 | Location: Debrecen, Hungary
+
+PROFESSIONAL SUMMARY
+Experienced Software Engineer specializing in backend platforms, high-throughput APIs, and distributed systems.
+
+WORK EXPERIENCE
+Software Engineer | Tech Global | 2022 - Present
+- Built high-performance microservices in Python and Go handling 100k requests/minute.
+- Optimized database indexing and caching layers using Redis and PostgreSQL.
+
+EDUCATION
+B.Sc. in Computer Science | University of Debrecen | 2019 - 2023
+
+SKILLS
+Python, FastAPI, Docker, Kubernetes, PostgreSQL, Redis, AWS

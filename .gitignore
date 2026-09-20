@@ -1,0 +1,55 @@
+# Python & Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+
+# Uploaded and Generated Files (Temporary)
+uploads/*
+!uploads/.gitkeep
+outputs/*
+!outputs/.gitkeep
+tmp/*
+!tmp/.gitkeep
+
+# Temporary Scratch & Artifacts
+scratch/
+*.zip
+*.log
+stderr.log
+test_stress_out.txt
+test_pipeline_result.docx
+Tailored_ATS_Resume*.docx
+.pytest_cache/
+
+# IDE and OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

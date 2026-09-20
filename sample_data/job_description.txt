@@ -1,0 +1,24 @@
+Job Title: Lead Backend Platform Engineer
+Company: Apex Global Technologies
+Location: San Francisco, CA (Hybrid / Remote)
+
+About the Role:
+Apex Global Technologies is seeking an exceptional Lead Backend Platform Engineer to spearhead our next-generation distributed cloud services and infrastructure platform. You will lead the architectural design, implementation, and optimization of low-latency backend systems that power millions of enterprise transactions worldwide.
+
+Key Responsibilities:
+- Architect, build, and maintain mission-critical distributed microservices and APIs using Python and modern asynchronous frameworks.
+- Lead latency optimization, database tuning, and caching strategies across PostgreSQL, Redis, and cloud-native datastores.
+- Drive cloud infrastructure automation and container orchestration on AWS using Kubernetes and Terraform.
+- Champion CI/CD automation, unit testing best practices, and technical governance across engineering squads.
+- Mentor junior and mid-level software engineers through code reviews and architecture deep dives.
+
+Requirements & Qualifications:
+- 5+ years of software engineering experience with deep expertise in Python, FastAPI/Django, and distributed systems.
+- Strong hands-on experience with AWS cloud services (EC2, RDS, Lambda, ECS/EKS) and containerization (Docker, Kubernetes).
+- Proven mastery in relational database optimization (PostgreSQL) and in-memory caches (Redis).
+- Experience designing and scaling high-throughput event-driven or microservices architectures.
+- Bachelor's degree in Computer Science, Engineering, or equivalent practical experience.
+- Outstanding communication and cross-functional leadership capabilities.
+
+Keywords / Priority Stack:
+Distributed Systems, Python, FastAPI, AWS, Kubernetes, PostgreSQL, Redis, Latency Optimization, Microservices, CI/CD
