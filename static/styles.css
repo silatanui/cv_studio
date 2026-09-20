@@ -11978,52 +11978,6 @@ canvas {
     pointer-events: none;
 }
 
-/* Moving ATS Scanner Laser Beam Motion Graphic */
-.lp-motion-scan-beam {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: #38bdf8;
-    box-shadow: 0 0 6px #38bdf8;
-    opacity: 0;
-    animation: atsScanSweep 7s ease-in-out infinite;
-    pointer-events: none;
-    z-index: 2;
-}
-
-.lp-scanner-tag {
-    position: absolute;
-    right: 2.5rem;
-    top: -18px;
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: #38bdf8;
-    background: #0f172a;
-    border: 1px solid #1e293b;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-family: monospace;
-}
-
-@keyframes atsScanSweep {
-    0% {
-        top: 8%;
-        opacity: 0;
-    }
-    12% {
-        opacity: 0.85;
-    }
-    88% {
-        opacity: 0.85;
-    }
-    98%, 100% {
-        top: 92%;
-        opacity: 0;
-    }
-}
-
 /* Moving SVG Wave Flow Motion Graphic */
 .lp-motion-waves {
     position: absolute;
@@ -12718,7 +12672,6 @@ canvas {
     .lp-hero-title { font-size: 2.1rem; }
     .lp-hero-wrapper { padding: 4.5rem 1.25rem 5rem 1.25rem; min-height: auto; }
     .lp-floating-badge { display: none; }
-    .lp-scanner-tag { display: none; }
     .landing-nav-menu { display: none; }
     .lp-hero-cta-group { flex-direction: column; width: 100%; max-width: 360px; margin-left: auto; margin-right: auto; }
     .lp-btn { width: 100%; }
@@ -12736,7 +12689,6 @@ canvas {
         opacity: 0.22;
         transform: none;
     }
-    .lp-motion-scan-beam,
     .lp-wave-track,
     .lp-floating-badge,
     .lp-radar-pulse::after {
