@@ -19,7 +19,7 @@
         <div class="nav-container">
             <!-- Left: Brand & Contextual Document Title -->
             <div class="nav-brand-group">
-                <div class="nav-brand" role="banner">
+                <div class="nav-brand" id="navBrandBtn" role="banner" style="cursor: pointer;" title="Back to Home">
                     <div class="brand-icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -42,8 +42,17 @@
                 </div>
             </div>
 
-            <!-- Header Middle: Streamlined 4-Stage Connected Workflow Stepper -->
-            <nav class="nav-steps-bar" id="navStepsBar" aria-label="Application workflow progress">
+            <!-- Landing Page Navigation Menu (visible on landing) -->
+            <nav class="landing-nav-menu" id="landingNavMenu">
+                <a href="#lp-features" class="landing-nav-link">Features</a>
+                <a href="#lp-how-it-works" class="landing-nav-link">How It Works</a>
+                <a href="#lp-comparison" class="landing-nav-link">Why CV Studio</a>
+                <a href="#lp-templates" class="landing-nav-link">Templates</a>
+                <a href="#lp-faq" class="landing-nav-link">FAQ</a>
+            </nav>
+
+            <!-- Header Middle: Streamlined 4-Stage Connected Workflow Stepper (visible in studio/editor) -->
+            <nav class="nav-steps-bar hidden" id="navStepsBar" aria-label="Application workflow progress">
                 <button type="button" class="nav-step-item active" id="navStep1Btn" title="Stage 1: Master CV Ingestion">
                     <span class="nav-step-num">1</span>
                     <span class="nav-step-text">Master CV</span>
@@ -71,8 +80,13 @@
                 </button>
             </nav>
 
-            <!-- Header Right: Clean Uncluttered Navigation & Single Contact Button -->
+            <!-- Header Right: Navigation & Actions -->
             <div class="nav-actions">
+                <button type="button" class="btn-nav-home hidden" id="topNavHomeBtn" title="Back to Home Page">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    <span>Home</span>
+                </button>
+
                 <div class="nav-links-cluster">
                     <button type="button" class="nav-link-btn" id="topNavAppsBtn" title="View Saved Job Applications and Versions">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
@@ -82,7 +96,7 @@
                     <button type="button" class="nav-link-btn" id="topNavTemplatesBtn" title="Browse Audience-Categorized Templates">
                         <span>Templates</span>
                     </button>
-                    <button type="button" id="toggleAiDrawerBtn" class="btn-ai-nav" title="Open AI Assistant">
+                    <button type="button" id="toggleAiDrawerBtn" class="btn-ai-nav hidden" title="Open AI Assistant">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><path d="M8 9h8M8 13h5"></path></svg>
                         <span>AI Assistant</span>
                     </button>
@@ -99,6 +113,11 @@
                     <span>Contact Us</span>
                 </a>
 
+                <!-- Header CTA Button -->
+                <button type="button" class="btn-nav-cta" id="topNavLaunchBtn" title="Start optimizing your CV">
+                    <span>Try for Free</span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
             </div>
         </div>
     </header>
@@ -149,9 +168,507 @@
     </div>
 
     <!-- ======================================================== -->
+    <!-- LANDING / FRONT PAGE                                     -->
+    <!-- ======================================================== -->
+    <main id="viewLandingPage" class="view-stage lp-wrapper">
+        <!-- Hero Section -->
+        <section class="lp-hero-wrapper">
+            <div class="lp-hero-bg-glow"></div>
+            <div class="lp-hero-content">
+                <div class="lp-badge-pill">
+                    <span class="lp-badge-dot"></span>
+                    <span>AI-Powered Career Intelligence • 100% Free &amp; Private</span>
+                </div>
+                <h1 class="lp-hero-title">
+                    Transform Your CV for the Job You Want.<br>
+                    <span class="lp-gradient-text">Beat the ATS. Land the Interview.</span>
+                </h1>
+                <p class="lp-hero-sub">
+                    Stop sending generic resumes into the black hole of automated recruiting filters. CV Studio performs deep semantic analysis on job requirements, aligns your verified experience with zero hallucinations, and generates an interview-ready application package in seconds.
+                </p>
+
+                <!-- Primary CTAs -->
+                <div class="lp-hero-cta-group">
+                    <button type="button" class="lp-btn lp-btn-primary" onclick="window.navigateToStudio()" title="Start tailoring your CV right now">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        <span>Optimize Your CV Now — Free</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </button>
+                    <button type="button" class="lp-btn lp-btn-secondary" onclick="window.loadDemoAndStart()" title="Explore with instant sample data">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+                        <span>Try Live Demo</span>
+                    </button>
+                </div>
+
+                <!-- Micro Trust Badges -->
+                <div class="lp-trust-indicators">
+                    <span class="lp-trust-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        100% Free Forever
+                    </span>
+                    <span class="lp-trust-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        No Sign-Up or Credit Card
+                    </span>
+                    <span class="lp-trust-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Zero-Hallucination Guarantee
+                    </span>
+                    <span class="lp-trust-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Instant Word &amp; PDF Export
+                    </span>
+                </div>
+
+                <!-- Interactive Hero Showcase -->
+                <div class="lp-hero-preview">
+                    <!-- Column 1: Job Spec Extraction -->
+                    <div class="lp-preview-card">
+                        <div class="lp-preview-card-header">
+                            <span class="lp-preview-tag lp-tag-jd">Target Vacancy</span>
+                            <span style="font-size: 0.75rem; color: #94a3b8;">Parsed in 1.2s</span>
+                        </div>
+                        <div class="lp-preview-title">Lead Cloud Platform Engineer</div>
+                        <p style="font-size: 0.78rem; color: #94a3b8; margin: 0;">Requirements &amp; Core Competencies:</p>
+                        <div class="lp-pill-cloud">
+                            <span class="lp-mini-pill match">Python</span>
+                            <span class="lp-mini-pill match">Kubernetes</span>
+                            <span class="lp-mini-pill match">AWS Architecture</span>
+                            <span class="lp-mini-pill match">CI/CD Automation</span>
+                            <span class="lp-mini-pill match">PostgreSQL</span>
+                            <span class="lp-mini-pill">System Resilience</span>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: 6-Dimension Match Engine -->
+                    <div class="lp-preview-card">
+                        <div class="lp-preview-card-header">
+                            <span class="lp-preview-tag lp-tag-engine">AI Match Engine</span>
+                            <span style="font-size: 0.75rem; color: #10b981; font-weight: 700;">Audit: 100% Truth</span>
+                        </div>
+                        <div class="lp-preview-gauge">
+                            <div class="lp-gauge-number">94<span style="font-size: 1.2rem;">%</span></div>
+                            <div class="lp-gauge-meta">
+                                <strong style="color: #f8fafc; display: block;">Exceptional Match</strong>
+                                Verified against 29 career sections
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #94a3b8;">
+                                <span>Hard Skills &amp; Tech Stack</span>
+                                <span style="color: #10b981; font-weight: 700;">96%</span>
+                            </div>
+                            <div class="lp-mini-bar-track"><div class="lp-mini-bar-fill" style="width: 96%;"></div></div>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: #94a3b8;">
+                                <span>Action-Context-Metrics</span>
+                                <span style="color: #10b981; font-weight: 700;">92%</span>
+                            </div>
+                            <div class="lp-mini-bar-track"><div class="lp-mini-bar-fill" style="width: 92%;"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Column 3: Tailored Application Suite -->
+                    <div class="lp-preview-card">
+                        <div class="lp-preview-card-header">
+                            <span class="lp-preview-tag lp-tag-cv">Application Suite</span>
+                            <span style="font-size: 0.75rem; color: #38bdf8;">Ready to Send</span>
+                        </div>
+                        <div class="lp-preview-title">Optimized Experience Bullet</div>
+                        <div class="lp-bullet-preview">
+                            "Architected distributed cloud platform on <strong>AWS &amp; Kubernetes</strong>, reducing deployment latency by <strong>42%</strong> while achieving <strong>99.99%</strong> SLA."
+                        </div>
+                        <div style="display: flex; gap: 6px; margin-top: auto;">
+                            <button type="button" class="btn btn-xs btn-primary" onclick="window.navigateToStudio()" style="flex: 1; justify-content: center;">
+                                Create Your CV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trust & Numbers Bar -->
+        <section class="lp-metrics-strip">
+            <div class="lp-metrics-grid">
+                <div class="lp-metric-item">
+                    <h3>98.4<span>%</span></h3>
+                    <p>ATS Parser Success Rate across major platforms</p>
+                </div>
+                <div class="lp-metric-item">
+                    <h3>0<span>%</span></h3>
+                    <p>Hallucinations — 100% Fact-Grounded in your true history</p>
+                </div>
+                <div class="lp-metric-item">
+                    <h3>3.2<span>x</span></h3>
+                    <p>Average increase in recruiter interview callbacks</p>
+                </div>
+                <div class="lp-metric-item">
+                    <h3>$0<span>.00</span></h3>
+                    <p>Completely Free — No paywall, no hidden subscription</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section id="lp-how-it-works" class="lp-section">
+            <div class="lp-section-header">
+                <span class="lp-section-pill">Workflow</span>
+                <h2 class="lp-section-title">How It Works: 4 Simple Steps to Your Dream Interview</h2>
+                <p class="lp-section-desc">From your raw resume to a fully tailored application package in under one minute.</p>
+            </div>
+
+            <div class="lp-steps-grid">
+                <div class="lp-step-card">
+                    <div class="lp-step-num">01</div>
+                    <h4>Upload Master CV</h4>
+                    <p>Upload your existing resume in PDF or Word (.docx), or paste plain text. Our system parses 29+ career sections losslessly.</p>
+                </div>
+                <div class="lp-step-card">
+                    <div class="lp-step-num">02</div>
+                    <h4>Paste Job Description</h4>
+                    <p>Copy and paste the job posting you want to target. The engine identifies core competencies, keywords, and hidden recruiter priorities.</p>
+                </div>
+                <div class="lp-step-card">
+                    <div class="lp-step-num">03</div>
+                    <h4>AI Aligns &amp; Audits</h4>
+                    <p>Our algorithms reframe your genuine achievements using high-impact Action-Context-Metric structures without inventing false claims.</p>
+                </div>
+                <div class="lp-step-card">
+                    <div class="lp-step-num">04</div>
+                    <h4>Export &amp; Apply</h4>
+                    <p>Download your perfected resume in Word (.docx) or PDF, together with a bespoke cover letter and tailored interview answers.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Grid Section -->
+        <section id="lp-features" class="lp-section" style="background: #f8fafc; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; max-width: 100%;">
+            <div style="max-width: 1180px; margin: 0 auto;">
+                <div class="lp-section-header">
+                    <span class="lp-section-pill">Core Capabilities</span>
+                    <h2 class="lp-section-title">Engineered Specifically for High-Stakes Hiring</h2>
+                    <p class="lp-section-desc">Traditional resume builders only change fonts. Generic AI invents facts. CV Studio bridges the gap with verified precision.</p>
+                </div>
+
+                <div class="lp-features-grid">
+                    <div class="lp-feature-card">
+                        <div class="lp-feature-icon lp-icon-blue">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        </div>
+                        <h3>Zero-Hallucination Guarantee</h3>
+                        <p>Our strict factual audit ensures every claim, number, and qualification directly maps to your verified background. You'll never be caught off-guard in an interview.</p>
+                    </div>
+
+                    <div class="lp-feature-card">
+                        <div class="lp-feature-icon lp-icon-teal">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 16 12 12 8"></polygon></svg>
+                        </div>
+                        <h3>6-Dimension Match Scoring</h3>
+                        <p>Get a comprehensive diagnostic score breaking down Hard Skills, Soft Skills, Seniority, Impact Metrics, Domain Relevance, and Keyword Frequency before you submit.</p>
+                    </div>
+
+                    <div class="lp-feature-card">
+                        <div class="lp-feature-icon lp-icon-purple">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                        </div>
+                        <h3>Bespoke Cover Letter Studio</h3>
+                        <p>Generate targeted, compelling cover letters that speak directly to the hiring manager's challenges and articulate why you are the ideal fit.</p>
+                    </div>
+
+                    <div class="lp-feature-card">
+                        <div class="lp-feature-icon lp-icon-amber">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><line x1="9" y1="10" x2="15" y2="10"></line></svg>
+                        </div>
+                        <h3>Predictive Interview Prep</h3>
+                        <p>Anticipate the exact technical and behavioral questions recruiters will ask based on your background and the target job, complete with STAR talking points.</p>
+                    </div>
+
+                    <div class="lp-feature-card">
+                        <div class="lp-feature-icon lp-icon-emerald">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                        </div>
+                        <h3>12+ ATS-Approved Templates</h3>
+                        <p>Switch seamlessly between modern executive, technical clean, classic academic, and corporate layouts—all verified against top ATS parsing engines.</p>
+                    </div>
+
+                    <div class="lp-feature-card">
+                        <div class="lp-feature-icon lp-icon-indigo">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        </div>
+                        <h3>100% Private &amp; Secure</h3>
+                        <p>Your resume data is confidential. We do not sell user data, we do not require accounts, and your career details are never used for public model training.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison Table Section -->
+        <section id="lp-comparison" class="lp-section">
+            <div class="lp-section-header">
+                <span class="lp-section-pill">Why CV Studio</span>
+                <h2 class="lp-section-title">See How We Compare</h2>
+                <p class="lp-section-desc">Why job seekers choose CV Studio over generic AI chatbots and expensive resume builders.</p>
+            </div>
+
+            <div class="lp-comparison-container">
+                <table class="lp-comparison-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 34%;">Feature / Capability</th>
+                            <th style="width: 22%;">Standard CV Builders</th>
+                            <th style="width: 22%;">Raw ChatGPT</th>
+                            <th style="width: 22%;" class="col-highlight">CV Studio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Factual Integrity &amp; Verification</strong></td>
+                            <td>Manual only</td>
+                            <td>Frequent Hallucinations</td>
+                            <td class="col-highlight">100% Grounded Audit</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Job-Specific Keyword Alignment</strong></td>
+                            <td>None (generic)</td>
+                            <td>Keyword stuffing risk</td>
+                            <td class="col-highlight">Semantic 6-Vector Match</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Action-Context-Metric (STAR) Bullets</strong></td>
+                            <td>Generic templates</td>
+                            <td>Exaggerated metrics</td>
+                            <td class="col-highlight">Automated &amp; Grounded</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ATS-Certified Layouts</strong></td>
+                            <td>Often broken by design</td>
+                            <td>Text only, no formatting</td>
+                            <td class="col-highlight">100% ATS-Compliant</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cover Letter &amp; Interview Prep</strong></td>
+                            <td>Extra cost / Add-on</td>
+                            <td>Manual prompt required</td>
+                            <td class="col-highlight">Unified 3-in-1 Suite</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Export Formats</strong></td>
+                            <td>Watermarked or Paid</td>
+                            <td>Copy/paste text</td>
+                            <td class="col-highlight">Direct .DOCX &amp; Vector PDF</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Pricing</strong></td>
+                            <td>$15 - $35 / month</td>
+                            <td>$20 / month Plus</td>
+                            <td class="col-highlight"><strong>100% Free</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Template Gallery Preview Section -->
+        <section id="lp-templates" class="lp-section" style="background: #f8fafc; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; max-width: 100%;">
+            <div style="max-width: 1180px; margin: 0 auto;">
+                <div class="lp-section-header">
+                    <span class="lp-section-pill">Template Gallery</span>
+                    <h2 class="lp-section-title">Designed for Every Industry and Career Level</h2>
+                    <p class="lp-section-desc">Select any template to test drive with our demo candidate or your own resume.</p>
+                </div>
+
+                <div class="lp-template-grid">
+                    <div class="lp-template-card" onclick="window.tryTemplateFromLanding('template_2_teal')">
+                        <div class="lp-template-card-preview" style="background: #ffffff;">
+                            <div class="lp-tpl-mock-header" style="background: #0d9488; width: 60%; margin-bottom: 8px;"></div>
+                            <div class="lp-tpl-mock-body">
+                                <div class="lp-tpl-mock-line" style="width: 100%;"></div>
+                                <div class="lp-tpl-mock-line" style="width: 85%;"></div>
+                                <div class="lp-tpl-mock-line" style="width: 90%;"></div>
+                                <div style="height: 1px; background: #0d9488; margin: 6px 0;"></div>
+                                <div class="lp-tpl-mock-line" style="width: 70%;"></div>
+                                <div class="lp-tpl-mock-line" style="width: 80%;"></div>
+                            </div>
+                        </div>
+                        <div class="lp-template-card-info">
+                            <h4>Modern Executive (Teal)</h4>
+                            <span>Best for Tech, Product &amp; Consulting</span>
+                            <button type="button" class="lp-template-card-btn">Use This Template &rarr;</button>
+                        </div>
+                    </div>
+
+                    <div class="lp-template-card" onclick="window.tryTemplateFromLanding('template_1_blue')">
+                        <div class="lp-template-card-preview" style="background: #ffffff;">
+                            <div class="lp-tpl-mock-header" style="background: #2563eb; width: 55%; margin-bottom: 8px;"></div>
+                            <div class="lp-tpl-mock-body">
+                                <div class="lp-tpl-mock-line" style="width: 95%;"></div>
+                                <div class="lp-tpl-mock-line" style="width: 80%;"></div>
+                                <div class="lp-tpl-mock-line" style="width: 88%;"></div>
+                                <div style="height: 1px; background: #2563eb; margin: 6px 0;"></div>
+                                <div class="lp-tpl-mock-line" style="width: 75%;"></div>
+                                <div class="lp-tpl-mock-line" style="width: 90%;"></div>
+                            </div>
+                        </div>
+                        <div class="lp-template-card-info">
+                            <h4>Executive Blue</h4>
+                            <span>Best for Corporate, Management &amp; Finance</span>
+                            <button type="button" class="lp-template-card-btn">Use This Template &rarr;</button>
+                        </div>
+                    </div>
+
+                    <div class="lp-template-card" onclick="window.tryTemplateFromLanding('template_3_navy')">
+                        <div class="lp-template-card-preview" style="background: #ffffff; display: flex; flex-direction: row; gap: 8px;">
+                            <div style="width: 30%; background: #0f172a; border-radius: 4px; padding: 6px; display: flex; flex-direction: column; gap: 4px;">
+                                <div style="height: 6px; background: #38bdf8; border-radius: 2px;"></div>
+                                <div style="height: 4px; background: #475569; border-radius: 2px;"></div>
+                                <div style="height: 4px; background: #475569; border-radius: 2px;"></div>
+                            </div>
+                            <div style="width: 70%; display: flex; flex-direction: column; gap: 6px;">
+                                <div class="lp-tpl-mock-line" style="width: 90%; background: #0f172a;"></div>
+                                <div class="lp-tpl-mock-line" style="width: 100%;"></div>
+                                <div class="lp-tpl-mock-line" style="width: 80%;"></div>
+                                <div class="lp-tpl-mock-line" style="width: 85%;"></div>
+                            </div>
+                        </div>
+                        <div class="lp-template-card-info">
+                            <h4>Navy Sidebar</h4>
+                            <span>Best for Engineering &amp; Data Science</span>
+                            <button type="button" class="lp-template-card-btn">Use This Template &rarr;</button>
+                        </div>
+                    </div>
+
+                    <div class="lp-template-card" onclick="window.tryTemplateFromLanding('template_6_classic')">
+                        <div class="lp-template-card-preview" style="background: #ffffff;">
+                            <div style="text-align: center; margin-bottom: 8px;">
+                                <div style="height: 8px; background: #334155; width: 40%; margin: 0 auto 4px auto; border-radius: 2px;"></div>
+                                <div style="height: 4px; background: #94a3b8; width: 60%; margin: 0 auto; border-radius: 2px;"></div>
+                            </div>
+                            <div style="height: 1px; background: #334155; margin-bottom: 8px;"></div>
+                            <div class="lp-tpl-mock-body">
+                                <div class="lp-tpl-mock-line" style="width: 100%;"></div>
+                                <div class="lp-tpl-mock-line" style="width: 90%;"></div>
+                                <div class="lp-tpl-mock-line" style="width: 95%;"></div>
+                            </div>
+                        </div>
+                        <div class="lp-template-card-info">
+                            <h4>Classic Academic (Harvard)</h4>
+                            <span>Best for Law, Medicine, Academia &amp; Research</span>
+                            <button type="button" class="lp-template-card-btn">Use This Template &rarr;</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section id="lp-faq" class="lp-section">
+            <div class="lp-section-header">
+                <span class="lp-section-pill">Got Questions?</span>
+                <h2 class="lp-section-title">Frequently Asked Questions</h2>
+                <p class="lp-section-desc">Everything you need to know about optimizing your CV with CV Studio.</p>
+            </div>
+
+            <div class="lp-faq-container">
+                <div class="lp-faq-item" onclick="this.classList.toggle('open')">
+                    <div class="lp-faq-question">
+                        <span>Is CV Studio really 100% free?</span>
+                        <svg class="lp-faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </div>
+                    <div class="lp-faq-answer">
+                        Yes! CV Studio is completely free to use. There are no paywalls, no trial limits, and no watermark on exported documents. You get unlimited Word (.docx) and PDF downloads.
+                    </div>
+                </div>
+
+                <div class="lp-faq-item" onclick="this.classList.toggle('open')">
+                    <div class="lp-faq-question">
+                        <span>How does the Zero-Hallucination guarantee work?</span>
+                        <svg class="lp-faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </div>
+                    <div class="lp-faq-answer">
+                        Unlike general-purpose chatbots that invent qualifications, our multi-stage pipeline strictly cross-references every generated bullet against your original resume. If an achievement or skill wasn't in your original background, our system flags it and prevents it from appearing on your tailored CV.
+                    </div>
+                </div>
+
+                <div class="lp-faq-item" onclick="this.classList.toggle('open')">
+                    <div class="lp-faq-question">
+                        <span>Will my resume pass Applicant Tracking Systems (ATS)?</span>
+                        <svg class="lp-faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </div>
+                    <div class="lp-faq-answer">
+                        All our templates are built according to strict ATS standards. They use clear semantic headings, standard font hierarchies, and zero unreadable text frames or graphics that cause ATS parsers like Workday, Taleo, and Greenhouse to fail.
+                    </div>
+                </div>
+
+                <div class="lp-faq-item" onclick="this.classList.toggle('open')">
+                    <div class="lp-faq-question">
+                        <span>Can I edit the generated resume before downloading?</span>
+                        <svg class="lp-faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </div>
+                    <div class="lp-faq-answer">
+                        Absolutely. Our built-in WYSIWYG editor allows you to edit text inline, add or remove sections, reorder bullet points, change templates, fonts, and accent colors in real time before exporting to Word or PDF.
+                    </div>
+                </div>
+
+                <div class="lp-faq-item" onclick="this.classList.toggle('open')">
+                    <div class="lp-faq-question">
+                        <span>How is my personal data protected?</span>
+                        <svg class="lp-faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </div>
+                    <div class="lp-faq-answer">
+                        We prioritize privacy above all. You do not need to register an account. Your resume content is never sold or used to train public machine learning models. You can purge all session data at any time with one click.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final CTA Banner -->
+        <section class="lp-section" style="padding-top: 1rem; padding-bottom: 3rem;">
+            <div class="lp-bottom-cta-banner">
+                <h2>Ready to Land Your Dream Job?</h2>
+                <p>Join smart job seekers who stop sending generic resumes and start getting interview invitations.</p>
+                <div class="lp-hero-cta-group" style="margin-bottom: 0;">
+                    <button type="button" class="lp-btn lp-btn-primary" onclick="window.navigateToStudio()">
+                        <span>Optimize Your CV Now for Free</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </button>
+                    <button type="button" class="lp-btn lp-btn-secondary" onclick="window.loadDemoAndStart()">
+                        <span>Try Live Demo</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Global Footer -->
+        <footer class="lp-footer">
+            <div class="lp-footer-container">
+                <div class="lp-footer-left">
+                    <div class="brand-icon" style="width: 26px; height: 26px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                    </div>
+                    <span style="font-weight: 700; color: #ffffff;">CV Studio</span>
+                    <span>&copy; 2026. All rights reserved.</span>
+                </div>
+                <div class="lp-footer-links">
+                    <a href="#lp-features" class="lp-footer-link">Features</a>
+                    <a href="#lp-how-it-works" class="lp-footer-link">How It Works</a>
+                    <a href="#lp-comparison" class="lp-footer-link">Why Us</a>
+                    <a href="#lp-templates" class="lp-footer-link">Templates</a>
+                    <a href="#lp-faq" class="lp-footer-link">FAQ</a>
+                    <a href="https://tanuisila.dev/contact.php" target="_blank" rel="noopener noreferrer" class="lp-footer-link">Contact Us</a>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <!-- ======================================================== -->
     <!-- STEP 1: INPUT & INGESTION STUDIO (SPACIOUS & CENTERED) -->
     <!-- ======================================================== -->
-    <main id="viewInputStudio" class="view-stage">
+    <main id="viewInputStudio" class="view-stage hidden">
         <div class="input-studio-container">
             <!-- Hero Banner: Modern Value Proposition -->
             <div class="input-hero">

@@ -68,6 +68,8 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 
 @app.get("/", response_class=HTMLResponse)
+@app.get("/cv_studio", response_class=HTMLResponse)
+@app.get("/cv_studio/", response_class=HTMLResponse)
 async def serve_index(request: Request):
     """Renders the main CV optimization dashboard."""
     return templates.TemplateResponse(request=request, name="index.html")

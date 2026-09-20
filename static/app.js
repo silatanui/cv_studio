@@ -46,8 +46,14 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
 
     // Views & Nav
+    const viewLandingPage = document.getElementById('viewLandingPage');
     const viewInputStudio = document.getElementById('viewInputStudio');
     const viewEditorStudio = document.getElementById('viewEditorStudio');
+    const landingNavMenu = document.getElementById('landingNavMenu');
+    const navStepsBar = document.getElementById('navStepsBar');
+    const topNavLaunchBtn = document.getElementById('topNavLaunchBtn');
+    const topNavHomeBtn = document.getElementById('topNavHomeBtn');
+    const navBrandBtn = document.getElementById('navBrandBtn');
     const navStep1Btn = document.getElementById('navStep1Btn');
     const navStep2Btn = document.getElementById('navStep2Btn');
     const backToInputsBtn = document.getElementById('backToInputsBtn');
@@ -726,17 +732,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. View & Contextual Document Mode Navigation
     function switchView(viewName) {
-        if (viewName === 'input') {
+        if (viewName === 'landing') {
+            if (viewLandingPage) viewLandingPage.classList.remove('hidden');
+            if (viewInputStudio) viewInputStudio.classList.add('hidden');
+            if (viewEditorStudio) viewEditorStudio.classList.add('hidden');
+            if (navStepsBar) navStepsBar.classList.add('hidden');
+            if (landingNavMenu) landingNavMenu.classList.remove('hidden');
+            if (topNavLaunchBtn) topNavLaunchBtn.classList.remove('hidden');
+            if (topNavHomeBtn) topNavHomeBtn.classList.add('hidden');
+            if (toggleAiDrawerBtn) toggleAiDrawerBtn.classList.add('hidden');
+            if (navDocTitleWrap) navDocTitleWrap.classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (viewName === 'input') {
+            if (viewLandingPage) viewLandingPage.classList.add('hidden');
             if (viewInputStudio) viewInputStudio.classList.remove('hidden');
             if (viewEditorStudio) viewEditorStudio.classList.add('hidden');
+            if (navStepsBar) navStepsBar.classList.remove('hidden');
+            if (landingNavMenu) landingNavMenu.classList.add('hidden');
+            if (topNavLaunchBtn) topNavLaunchBtn.classList.add('hidden');
+            if (topNavHomeBtn) topNavHomeBtn.classList.remove('hidden');
             if (navStep1Btn) navStep1Btn.classList.add('active');
             if (navStep2Btn) navStep2Btn.classList.remove('active');
             if (toggleAiDrawerBtn) toggleAiDrawerBtn.classList.add('hidden');
             if (navDocTitleWrap) navDocTitleWrap.classList.add('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } else if (viewName === 'editor') {
+            if (viewLandingPage) viewLandingPage.classList.add('hidden');
             if (viewInputStudio) viewInputStudio.classList.add('hidden');
             if (viewEditorStudio) viewEditorStudio.classList.remove('hidden');
+            if (navStepsBar) navStepsBar.classList.remove('hidden');
+            if (landingNavMenu) landingNavMenu.classList.add('hidden');
+            if (topNavLaunchBtn) topNavLaunchBtn.classList.add('hidden');
+            if (topNavHomeBtn) topNavHomeBtn.classList.remove('hidden');
             if (navStep1Btn) navStep1Btn.classList.remove('active');
             if (navStep2Btn) {
                 navStep2Btn.classList.add('active');
@@ -748,6 +775,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    if (navBrandBtn) navBrandBtn.addEventListener('click', () => switchView('landing'));
+    if (topNavHomeBtn) topNavHomeBtn.addEventListener('click', () => switchView('landing'));
+    if (topNavLaunchBtn) topNavLaunchBtn.addEventListener('click', () => switchView('input'));
     if (navStep1Btn) navStep1Btn.addEventListener('click', () => switchView('input'));
     if (navStep2Btn) navStep2Btn.addEventListener('click', () => {
         // Allow navigation to editor even without optimization; show canvas with whatever data is available
@@ -757,6 +787,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     if (backToInputsBtn) backToInputsBtn.addEventListener('click', () => switchView('input'));
+
+    window.navigateToStudio = () => switchView('input');
+    window.navigateToLanding = () => switchView('landing');
+
+    window.loadDemoAndStart = () => {
+        if (loadSampleDataBtn) {
+            loadSampleDataBtn.click();
+        }
+        switchView('input');
+        const formEl = document.getElementById('optimizeForm');
+        if (formEl) {
+            setTimeout(() => formEl.scrollIntoView({ behavior: 'smooth' }), 120);
+        }
+    };
+
+    window.tryTemplateFromLanding = (templateId) => {
+        if (loadSampleDataBtn) {
+            loadSampleDataBtn.click();
+        }
+        setTimeout(() => {
+            const select = document.getElementById('templateSelect');
+            if (select) {
+                select.value = templateId;
+                select.dispatchEvent(new Event('change'));
+            }
+            switchView('editor');
+        }, 150);
+    };
+
+    // Default to landing page unless hash requested otherwise
+    if (window.location.hash === '#studio' || window.location.hash === '#app') {
+        switchView('input');
+    } else {
+        switchView('landing');
+    }
 
     window.switchView = switchView;
     window.setDocumentMode = setDocumentMode;
