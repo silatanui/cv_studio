@@ -1,7 +1,6 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/$USER/cv_studio
-    - if [ -d "$DEPLOYPATH" ] && [ "$PWD" != "$DEPLOYPATH" ]; then /bin/cp -R * $DEPLOYPATH; fi
+    - export DEPLOYPATH=/home/lpusgkqs/cv_studio/
     - /bin/mkdir -p $DEPLOYPATH/tmp
     - /bin/touch $DEPLOYPATH/tmp/restart.txt
