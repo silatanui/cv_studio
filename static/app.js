@@ -6465,91 +6465,186 @@ ${languages.join(', ') || 'None listed'}
                 throw new Error('Document element not found.');
             }
 
+            // ─── IFRAME PRINT ENGINE ─────────────────────────────────────────────
+            // Uses the browser's native PDF renderer (same quality as Ctrl+P) instead
+            // of html2pdf's canvas-screenshot approach. Text is real vector text:
+            // crisp, selectable, searchable, and perfectly font-rendered.
             document.body.classList.add('is-exporting-pdf');
-            showStudioToast(`Preparing ${pdfFilename} preview...`);
+            showStudioToast(`Preparing ${pdfFilename}…`);
 
-            if (typeof html2pdf !== 'undefined') {
-                const isCoverLetter = (currentDocMode === 'cl');
-                const opt = {
-                    margin: isCoverLetter ? [10, 10, 10, 10] : [12, 10, 12, 10],
-                    filename: pdfFilename,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: {
-                        scale: 2,
-                        useCORS: true,
-                        logging: false,
-                        letterRendering: true,
-                        scrollY: 0,
-                        scrollX: 0
-                    },
-                    jsPDF: {
-                        unit: 'mm',
-                        format: 'a4',
-                        orientation: 'portrait'
-                    },
-                    pagebreak: isCoverLetter ? {
-                        mode: ['css'],
-                        avoid: ['.cl-paragraph', '.cl-recipient-box', '.cl-signature-block']
-                    } : {
-                        mode: ['css', 'legacy'],
-                        avoid: [
-                            '.cv-exp-item',
-                            '.cv-exp-bullet-row',
-                            '.cv-achievement-item',
-                            '.cv-edu-item',
-                            '.cv-edu-sub-row',
-                            '.cv-skill-cat',
-                            '.cv-ach-item',
-                            '.cv-lang-item',
-                            '.cv-cert-item',
-                            '.cv-academic-item',
-                            '.cv-contact-item-bullet',
-                            '.contact-item',
-                            '.cv-section-heading',
-                            '.cv-section-header-row',
-                            '.cv-header-tpl2',
-                            '.cv-header-tpl5',
-                            '.cv-header-tpl6',
-                            '.cv-header-tpl7',
-                            '.cv-header-tpl8',
-                            '.cv-header-tpl9',
-                            '.cv-header-tpl10',
-                            '.cv-header-tpl11',
-                            '.cv-name',
-                            '.cv-title-teal',
-                            '.cv-name-tpl5',
-                            '.cv-title-tpl5',
-                            '.cv-name-tpl6',
-                            '.cv-title-tpl6',
-                            '#secReferees',
-                            '.cv-referees-container',
-                            '.cv-referees-statement-card',
-                            '.ref-statement-text',
-                            '.cv-referee-card',
-                            'li'
-                        ]
-                    }
-                };
-
-                const pdf = await html2pdf().set(opt).from(targetElement).toPdf().get('pdf');
-                {
-                    const totalPages = pdf.internal.getNumberOfPages();
-                    if (isCoverLetter && totalPages > 1) {
-                        const elHeight = targetElement.scrollHeight || targetElement.offsetHeight;
-                        // Printable A4 height at 96 DPI is ~1060px (277mm)
-                        if (elHeight <= 1180 && totalPages === 2) {
-                            pdf.deletePage(2);
-                        }
+            // Collect all stylesheet text from the page to inject into the iframe
+            const sheetTexts = [];
+            for (const sheet of Array.from(document.styleSheets)) {
+                try {
+                    const rules = Array.from(sheet.cssRules || []).map(r => r.cssText).join('\n');
+                    sheetTexts.push(rules);
+                } catch (e) {
+                    // Cross-origin sheets (e.g. Google Fonts) — include via link href instead
+                    if (sheet.href) {
+                        sheetTexts.push(`@import url("${sheet.href}");`);
                     }
                 }
-                openPdfPreview(pdf, pdfFilename);
-                showStudioToast('PDF preview ready for review');
-            } else {
-                const origTitle = document.title;
-                document.title = baseDocTitle;
-                window.print();
-                setTimeout(() => { document.title = origTitle; }, 1500);
             }
+
+            // Clone the document node so we can safely mutate it for printing
+            const clone = targetElement.cloneNode(true);
+
+            // Strip all UI-only elements from the clone that must not appear in the PDF
+            const uiSelectors = [
+                '.no-print', '.btn-bullet-del', '.btn-add-bullet', '.btn-add-achievement',
+                '.exp-bullet-controls', '.ach-controls', '.section-actions', '.btn-sec-drag',
+                '.sec-insert-divider', '.para-diff-action-bar', '.cv-gap-badge-wrap',
+                '.avatar-upload-overlay', '.avatar-reset-btn', '.btn-edu-del',
+                '.btn-edu-sub-del', '.btn-academic-del', '.btn-lang-del',
+                '.btn-skill-cat-del', '.btn-skill-tag-del', '.btn-add-skill-pill',
+                '.edu-item-controls', '.academic-controls', '.lang-controls',
+                '.skills-controls', '.btn-col-add-sec', '.section-ai-corner-badge'
+            ];
+            clone.querySelectorAll(uiSelectors.join(',')).forEach(el => el.remove());
+
+            // Strip highlight markers (yellow boxes) — unwanted in the final PDF
+            clone.querySelectorAll('mark, .cv-match-highlight, .cv-edu-match, .cv-gap-highlight, .highlight-span, .ai-diff-ins, .ai-diff-del, .rewrite-highlight-flash, .tag-keyword-highlight, .keyword-matched').forEach(m => {
+                const parent = m.parentNode;
+                if (parent) {
+                    while (m.firstChild) parent.insertBefore(m.firstChild, m);
+                    parent.removeChild(m);
+                }
+            });
+
+            // Remove contenteditable outlines
+            clone.querySelectorAll('[contenteditable]').forEach(el => {
+                el.removeAttribute('contenteditable');
+                el.style.outline = 'none';
+            });
+
+            // Build the iframe with a scoped print stylesheet
+            const iframe = document.createElement('iframe');
+            iframe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;opacity:0;border:none;pointer-events:none;';
+            document.body.appendChild(iframe);
+
+            const iDoc = iframe.contentDocument || iframe.contentWindow.document;
+            iDoc.open();
+            iDoc.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>${pdfFilename.replace(/\.pdf$/i, '')}</title>
+<style>
+${sheetTexts.join('\n')}
+
+/* ── Print isolation overrides ────────────────────────── */
+@page {
+    size: A4 portrait;
+    margin: 14mm 12mm 14mm 12mm;
+}
+
+*, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+}
+
+html, body {
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
+/* The document sheet fills the page — @page handles all whitespace */
+.document-sheet,
+.cover-letter-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    /* Eliminate artificial height that creates blank trailing pages */
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
+[contenteditable] {
+    outline: none !important;
+    background: transparent !important;
+}
+
+/* Section containers flow naturally across pages */
+.cv-section, .cv-column, .cv-left-col, .cv-right-col,
+.cv-body, .cv-exp-bullets, .cv-achievements-list {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+}
+
+/* Individual items must never be sliced across page boundaries */
+.cv-exp-bullet-row, .cv-exp-item, .cv-achievement-item,
+.cv-edu-item, .cv-skill-cat, .cv-ach-item, .cv-lang-item,
+.cv-cert-item, .cv-academic-item, .cv-contact-item-bullet,
+.contact-item, .cl-paragraph, .cl-recipient-box,
+.cl-signature-block, li {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+}
+
+.cv-section-heading, .cv-section-header-row {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+}
+
+/* Strip all highlight colours */
+mark, .cv-match-highlight, .cv-edu-match, .cv-gap-highlight,
+.highlight-span, .ai-diff-ins, .ai-diff-del,
+.rewrite-highlight-flash, .tag-keyword-highlight, .keyword-matched {
+    background-color: transparent !important;
+    background: transparent !important;
+    color: inherit !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    text-decoration: none !important;
+}
+
+/* Preserve avatar/initials badges */
+.cv-avatar-dark-circle, .cv-initials-badge,
+.cv-sidebar-circle-badge, .cv-avatar-col-tpl5,
+.cl-avatar-dark-circle, .cl-av-col {
+    display: flex !important;
+    visibility: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
+</style>
+</head>
+<body>
+${clone.outerHTML}
+</body>
+</html>`);
+            iDoc.close();
+
+            // Wait for the iframe to fully load (fonts, layout), then print
+            iframe.onload = () => {
+                try {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                } finally {
+                    // Remove the iframe after a short delay to allow the print dialog to open
+                    setTimeout(() => {
+                        document.body.classList.remove('is-exporting-pdf');
+                        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+                        exportPdfBtn.disabled = false;
+                        exportPdfBtn.innerHTML = origBtnHtml;
+                    }, 1500);
+                }
+            };
+            // Return early — finally block below must NOT re-enable the button
+            // (iframe.onload handles cleanup above)
+            return;
         } catch (err) {
             console.error('PDF export error:', err);
             showStudioToast(`PDF Export: ${err.message}`);

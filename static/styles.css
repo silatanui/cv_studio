@@ -7453,8 +7453,8 @@ mark {
 /* PRINT STYLES (@media print) FOR ZERO HEADERS/FOOTERS */
 /* ======================================================== */
 @page {
-    margin: 0 !important;
-    size: auto;
+    margin: 14mm 12mm 14mm 12mm;
+    size: A4 portrait;
 }
 
 @media print {
@@ -7543,8 +7543,13 @@ mark {
         border: none !important;
         width: 100% !important;
         max-width: 100% !important;
-        padding: 6mm 10mm 12mm 10mm !important;
+        /* @page margin provides all whitespace — zero inner padding to avoid double-margining */
+        padding: 0 !important;
         margin: 0 !important;
+        /* Remove min-height so blank trailing pages are never generated */
+        min-height: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
     }
 
     .cover-letter-sheet-wrapper {
@@ -7561,8 +7566,12 @@ mark {
         border: none !important;
         width: 100% !important;
         max-width: 100% !important;
-        padding: 8mm 14mm 14mm 14mm !important;
+        /* @page margin provides all whitespace — zero inner padding to avoid double-margining */
+        padding: 0 !important;
         margin: 0 !important;
+        min-height: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
     }
 
     [contenteditable="true"] {
@@ -8596,9 +8605,12 @@ mark {
     max-width: 100% !important;
     width: 100% !important;
     margin: 0 !important;
-    padding: 0 0.5rem !important;
-    min-height: auto !important;
+    /* Zero inner padding — html2pdf margin option handles whitespace */
+    padding: 0 !important;
+    /* Kill min-height so blank trailing pages are never generated */
+    min-height: 0 !important;
     height: auto !important;
+    overflow: visible !important;
 }
 
 /* ======================================================== */
@@ -8943,9 +8955,10 @@ canvas {
 .is-exporting-pdf .cover-letter-sheet {
     min-height: 0 !important;
     height: auto !important;
-    padding: 0 0.25rem 0.25rem 0.25rem !important;
+    padding: 0 !important;
     margin: 0 !important;
     gap: 0.45rem !important;
+    overflow: visible !important;
 }
 
 .is-exporting-pdf .cv-exp-bullet-row,
