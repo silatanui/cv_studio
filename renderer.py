@@ -76,6 +76,22 @@ def clear_headers_and_footers(doc):
             p.text = ""
 
 
+def set_run_font(run, font_name: str):
+    """Binds font across ascii, high-ansi, complex scripts, and east-asia for Microsoft Word."""
+    if not run or not font_name:
+        return
+    run.font.name = font_name
+    try:
+        rPr = run._r.get_or_add_rPr()
+        rFonts = rPr.get_or_add_rFonts()
+        rFonts.set(qn('w:ascii'), font_name)
+        rFonts.set(qn('w:hAnsi'), font_name)
+        rFonts.set(qn('w:cs'), font_name)
+        rFonts.set(qn('w:eastAsia'), font_name)
+    except Exception:
+        pass
+
+
 def build_ats_friendly_docx(
     data: TailoredResumeSchema,
     contact_info: ContactInformation,
@@ -112,6 +128,15 @@ def build_ats_friendly_docx(
     font.name = font_name
     font.size = Pt(11)
     font.color.rgb = RGBColor(0x1e, 0x29, 0x3b)
+    try:
+        rPr = style_normal.element.get_or_add_rPr()
+        rFonts = rPr.get_or_add_rFonts()
+        rFonts.set(qn('w:ascii'), font_name)
+        rFonts.set(qn('w:hAnsi'), font_name)
+        rFonts.set(qn('w:cs'), font_name)
+        rFonts.set(qn('w:eastAsia'), font_name)
+    except Exception:
+        pass
 
     def apply_compact_para(p, space_before=1, space_after=1):
         """Enforces line height = 1.0 (squeezed / compact)."""
@@ -1351,6 +1376,21 @@ def build_cover_letter_docx(
         section.bottom_margin = Inches(0.75)
         section.left_margin = Inches(0.85)
         section.right_margin = Inches(0.85)
+
+    style_normal = doc.styles['Normal']
+    font = style_normal.font
+    font.name = font_name
+    font.size = Pt(11)
+    font.color.rgb = RGBColor(0x1e, 0x29, 0x3b)
+    try:
+        rPr = style_normal.element.get_or_add_rPr()
+        rFonts = rPr.get_or_add_rFonts()
+        rFonts.set(qn('w:ascii'), font_name)
+        rFonts.set(qn('w:hAnsi'), font_name)
+        rFonts.set(qn('w:cs'), font_name)
+        rFonts.set(qn('w:eastAsia'), font_name)
+    except Exception:
+        pass
 
     def apply_cl_para(p, space_before=2, space_after=5, line_spacing=1.08):
         p.paragraph_format.line_spacing = line_spacing

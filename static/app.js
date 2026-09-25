@@ -968,7 +968,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modeCvBtn) modeCvBtn.addEventListener('click', () => setDocumentMode('cv'));
     if (modeClBtn) modeClBtn.addEventListener('click', () => {
         setDocumentMode('cl');
-        if (lastOptimizationResult && !lastCoverLetterData) {
+        if (lastCoverLetterData) {
+            renderCoverLetter(lastCoverLetterData);
+        } else if (lastOptimizationResult && !lastCoverLetterData) {
             triggerRegenerateCoverLetter();
         } else if (!lastOptimizationResult) {
             showStudioToast('Upload your CV and run Optimize CV before generating a Cover Letter.');
@@ -1353,6 +1355,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyClTemplateStyles() {
         if (!coverLetterSheet) return;
         const fontCls = getFontClass(currentFont);
+        const fontFamStr = getFontFamilyString(currentFont);
         let tplCls = 'cl-template-centered';
         if (currentClTemplate === 'cl_template_2_minimalist') tplCls = 'cl-template-minimalist';
         if (currentClTemplate === 'cl_template_3_navy') tplCls = 'cl-template-navy';
@@ -1363,6 +1366,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         coverLetterSheet.className = `cover-letter-sheet ${tplCls} ${fontCls}`;
         coverLetterSheet.style.setProperty('--cv-accent', currentAccent);
+        coverLetterSheet.style.setProperty('font-family', fontFamStr, 'important');
 
         // Explicitly set display for all 6 header types
         const hdrMap = {
@@ -1647,9 +1651,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function applyTemplateStyles() {
         const fontCls = getFontClass(currentFont);
+        const fontFamStr = getFontFamilyString(currentFont);
         const colClass = (['template_4_banner', 'template_ats_minimal', 'template_13_editorial'].includes(currentTemplate)) ? 'layout-1col' : `layout-${currentColumns}col`;
         resumePreviewCanvas.className = `document-sheet ${fontCls} template-${currentTemplate} ${colClass}`;
         resumePreviewCanvas.style.setProperty('--cv-accent', currentAccent);
+        resumePreviewCanvas.style.setProperty('font-family', fontFamStr, 'important');
         rearrangeSectionsForTemplate(currentTemplate);
     }
 
@@ -1709,7 +1715,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function applyFontStyles() {
         const fontCls = getFontClass(currentFont);
-        document.body.className = fontCls;
+        const fontFamStr = getFontFamilyString(currentFont);
+        const allFontClasses = [
+            'font-outfit', 'font-poppins', 'font-helvetica', 'font-futura', 'font-avenir',
+            'font-plus-jakarta-sans', 'font-inter', 'font-montserrat', 'font-raleway',
+            'font-dm-sans', 'font-jost', 'font-nunito-sans', 'font-roboto', 'font-open-sans',
+            'font-lato', 'font-calibri', 'font-arial', 'font-abadi', 'font-bodoni',
+            'font-bodoni-moda', 'font-playfair-display', 'font-playfair', 'font-merriweather',
+            'font-lora', 'font-eb-garamond', 'font-garamond', 'font-georgia', 'font-cinzel',
+            'font-jetbrains-mono'
+        ];
+
+        // Update body class
+        allFontClasses.forEach(c => document.body.classList.remove(c));
+        document.body.classList.add(fontCls);
+
+        // Update CV Canvas and Cover Letter Sheet directly
+        const sheets = [
+            document.getElementById('resumePreviewCanvas'),
+            document.getElementById('coverLetterSheet')
+        ];
+        sheets.forEach(sheet => {
+            if (sheet) {
+                allFontClasses.forEach(c => sheet.classList.remove(c));
+                sheet.classList.add(fontCls);
+                sheet.style.setProperty('font-family', fontFamStr, 'important');
+                sheet.querySelectorAll('*').forEach(el => {
+                    if (el.tagName && el.tagName.toLowerCase() !== 'svg' && el.tagName.toLowerCase() !== 'path') {
+                        el.style.setProperty('font-family', fontFamStr, 'important');
+                    }
+                });
+            }
+        });
+
         applyTemplateStyles();
         applyClTemplateStyles();
     }
@@ -3588,7 +3626,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             lastOptimizationResult = data;
             window.lastOptimizationResult = data;
-            lastCoverLetterData = null;
+            if (data.cover_letter) {
+                lastCoverLetterData = data.cover_letter;
+                renderCoverLetter(data.cover_letter);
+            } else {
+                lastCoverLetterData = null;
+            }
             renderDocument(data);
             renderCommercialIntelligence(data);
             renderCvExtractionSummary(data);
@@ -5149,6 +5192,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             resumePreviewCanvas.classList.add('visual-review-hidden');
         }
+
+        applyFontStyles();
     }
 
     function highlightTextNodes(rootNode, regex, highlightClass) {
@@ -5358,6 +5403,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cvDocTitleInput) {
             cvDocTitleInput.value = computeSmartDocTitle('Cover_Letter');
         }
+
+        applyFontStyles();
     }
 
     // ========================================================
@@ -6294,16 +6341,22 @@ ${languages.join(', ') || 'None listed'}
                 })
             });
 
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({ detail: 'Failed to communicate with AI Assistant.' }));
-                throw new Error(err.detail || 'Assistant error');
+            const contentType = (res.headers && res.headers.get('content-type')) || '';
+            let data = null;
+            if (contentType.includes('application/json')) {
+                data = await res.json().catch(() => null);
             }
 
-            const data = await res.json();
+            if (!res.ok || !data) {
+                const errDetail = (data && data.detail) || (res.status === 404 ? 'AI Chat service route not found.' : 'The AI Assistant is currently unavailable. Please try again shortly.');
+                throw new Error(errDetail);
+            }
+
             if (typingElem && typingElem.parentNode) typingElem.remove();
 
-            appendMessageBubble('assistant', data.reply);
-            chatMessages.push({ role: 'assistant', content: data.reply });
+            const replyContent = data.reply || "I am here to help you refine your CV and Cover Letter. How can I assist you with your application?";
+            appendMessageBubble('assistant', replyContent);
+            chatMessages.push({ role: 'assistant', content: replyContent });
 
         } catch (err) {
             console.error('Chat error:', err);
@@ -6511,11 +6564,27 @@ ${languages.join(', ') || 'None listed'}
                 }
             });
 
-            // Remove contenteditable outlines
+            // Strip contenteditable outlines
             clone.querySelectorAll('[contenteditable]').forEach(el => {
                 el.removeAttribute('contenteditable');
                 el.style.outline = 'none';
             });
+
+            // Enforce selected font typography across the cloned document
+            const fontCls = getFontClass(currentFont);
+            const fontFamStr = getFontFamilyString(currentFont);
+            clone.classList.add(fontCls);
+            clone.style.setProperty('font-family', fontFamStr, 'important');
+            clone.querySelectorAll('*').forEach(el => {
+                if (el.tagName && el.tagName.toLowerCase() !== 'svg' && el.tagName.toLowerCase() !== 'path') {
+                    el.style.setProperty('font-family', fontFamStr, 'important');
+                }
+            });
+
+            // Extract Google Fonts and external font stylesheets from main document head
+            const headLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"], link[rel="preconnect"]'))
+                .map(l => l.outerHTML)
+                .join('\n');
 
             // Build the iframe with a scoped print stylesheet
             const iframe = document.createElement('iframe');
@@ -6529,6 +6598,7 @@ ${languages.join(', ') || 'None listed'}
 <head>
 <meta charset="UTF-8">
 <title>${pdfFilename.replace(/\.pdf$/i, '')}</title>
+${headLinks}
 <style>
 ${sheetTexts.join('\n')}
 
@@ -6551,6 +6621,7 @@ html, body {
     width: 100% !important;
     height: auto !important;
     overflow: visible !important;
+    font-family: ${fontFamStr} !important;
 }
 
 /* The document sheet fills the page — @page handles all whitespace */
@@ -6566,6 +6637,12 @@ html, body {
     min-height: 0 !important;
     height: auto !important;
     overflow: visible !important;
+    font-family: ${fontFamStr} !important;
+}
+
+.document-sheet *,
+.cover-letter-sheet * {
+    font-family: ${fontFamStr} !important;
 }
 
 [contenteditable] {
@@ -6621,26 +6698,37 @@ mark, .cv-match-highlight, .cv-edu-match, .cv-gap-highlight,
 }
 </style>
 </head>
-<body>
+<body class="${fontCls}" style="font-family: ${fontFamStr} !important;">
 ${clone.outerHTML}
 </body>
 </html>`);
             iDoc.close();
 
-            // Wait for the iframe to fully load (fonts, layout), then print
-            iframe.onload = () => {
+            // Wait for iframe fonts and layout to be completely ready before triggering print
+            iframe.onload = async () => {
                 try {
-                    iframe.contentWindow.focus();
-                    iframe.contentWindow.print();
-                } finally {
-                    // Remove the iframe after a short delay to allow the print dialog to open
-                    setTimeout(() => {
-                        document.body.classList.remove('is-exporting-pdf');
-                        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-                        exportPdfBtn.disabled = false;
-                        exportPdfBtn.innerHTML = origBtnHtml;
-                    }, 1500);
-                }
+                    if (iframe.contentWindow && iframe.contentWindow.document && iframe.contentWindow.document.fonts) {
+                        try {
+                            await iframe.contentWindow.document.fonts.ready;
+                        } catch (fErr) {}
+                    }
+                } catch (e) {}
+
+                setTimeout(() => {
+                    try {
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                    } catch (printErr) {
+                        console.error('Print trigger error:', printErr);
+                    } finally {
+                        setTimeout(() => {
+                            document.body.classList.remove('is-exporting-pdf');
+                            if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+                            exportPdfBtn.disabled = false;
+                            exportPdfBtn.innerHTML = origBtnHtml;
+                        }, 1500);
+                    }
+                }, 150);
             };
             // Return early — finally block below must NOT re-enable the button
             // (iframe.onload handles cleanup above)
@@ -7545,6 +7633,12 @@ ${clone.outerHTML}
 
         renderDocument(app.data);
         renderCommercialIntelligence(app.data);
+        if (app.data && app.data.cover_letter) {
+            lastCoverLetterData = app.data.cover_letter;
+            renderCoverLetter(app.data.cover_letter);
+        } else {
+            lastCoverLetterData = null;
+        }
         switchView('editor');
         setDocumentMode('cv');
 
@@ -7923,6 +8017,12 @@ ${clone.outerHTML}
                         renderCommercialIntelligence(data);
                         renderCvExtractionSummary(data);
                         renderPostAnalysisSummary(data);
+                        if (data.cover_letter) {
+                            lastCoverLetterData = data.cover_letter;
+                            renderCoverLetter(data.cover_letter);
+                        } else {
+                            lastCoverLetterData = null;
+                        }
                         showStudioToast('Demo candidate profile loaded. Click "Tailor My Application Package" to run optimization!');
                     }
                 })
@@ -7957,6 +8057,12 @@ ${clone.outerHTML}
                     renderCommercialIntelligence(data);
                     renderCvExtractionSummary(data);
                     renderPostAnalysisSummary(data);
+                    if (data.cover_letter) {
+                        lastCoverLetterData = data.cover_letter;
+                        renderCoverLetter(data.cover_letter);
+                    } else {
+                        lastCoverLetterData = null;
+                    }
                     renderAllAvatarBadges();
                     setVisualReviewState(false);
                     switchView('editor');

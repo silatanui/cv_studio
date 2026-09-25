@@ -426,7 +426,95 @@ class TestWebApp(unittest.TestCase):
         self.assertEqual(dl_res.status_code, 200)
         self.assertGreater(len(dl_res.content), 1000)
 
+        # Verify Outfit font is written to document XML
+        import io, zipfile
+        docx_bytes = io.BytesIO(dl_res.content)
+        with zipfile.ZipFile(docx_bytes) as z:
+            xml_content = z.read("word/document.xml").decode("utf-8")
+            self.assertIn('w:ascii="Outfit"', xml_content)
+            self.assertIn('w:hAnsi="Outfit"', xml_content)
+
+    def test_optimize_includes_auto_generated_cover_letter(self):
+        """Test that /api/optimize generates and returns a tailored cover letter concurrently."""
+        payload = {
+            "resume_text": "Sofia Berger\nDigital Transformation Lead\nSkills: Azure, Python, Agile",
+            "jd_text": "Role: Senior Cloud Strategy Director\nCompany: Enterprise Global\nRequirements: Cloud architecture, Azure.",
+            "use_mock": "true",
+            "template_style": "template_modern_minimal",
+            "columns": "2",
+            "font_name": "Poppins"
+        }
+        response = self.client.post("/api/optimize", data=payload)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertIn("cover_letter", data)
+        cl = data["cover_letter"]
+        self.assertIn("paragraphs", cl)
+        self.assertGreaterEqual(len(cl["paragraphs"]), 3)
+        self.assertIn("recipient_title", cl)
+        self.assertIn("job_title", cl)
+
+    def test_ai_chat_returns_valid_json(self):
+        """Test that /api/chat always returns valid JSON with a non-empty reply."""
+        payload = {
+            "messages": [{"role": "user", "content": "How can I improve my professional summary?"}],
+            "candidate_name": "Sofia Berger",
+            "current_role": "Digital Transformation Lead",
+            "resume_context": "Digital transformation consultant with 8 years experience.",
+            "jd_context": "Seeking senior cloud leader.",
+            "active_mode": "cv"
+        }
+        response = self.client.post("/api/chat", json=payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("application/json", response.headers["content-type"])
+        data = response.json()
+        self.assertTrue(data.get("success"))
+        self.assertIn("reply", data)
+        self.assertGreater(len(data["reply"]), 20)
+
+    def test_cover_letter_docx_font_styling(self):
+        """Test that /api/export-cover-letter-docx preserves selected font family in XML."""
+        payload = {
+            "cover_letter": {
+                "recipient_title": "Dear Hiring Committee,",
+                "recipient_name": "Talent Acquisition Team",
+                "company_name": "Enterprise Global",
+                "department_or_address": "Vienna, Austria",
+                "job_title": "Senior Cloud Strategy Director",
+                "paragraphs": [
+                    "I am writing to express my strong enthusiasm for the role.",
+                    "With extensive experience in Azure migrations and cloud strategies...",
+                    "Thank you for considering my application."
+                ],
+                "sign_off": "Warm regards,"
+            },
+            "contact_info": {
+                "full_name": "Sofia Berger",
+                "professional_title": "Senior Cloud Consultant",
+                "email": "sofia@example.com",
+                "phone": "+43 123 4567"
+            },
+            "font_name": "Playfair Display",
+            "template_style": "cl_template_1_centered",
+            "doc_title": "Sofia_Berger_Cover_Letter"
+        }
+        response = self.client.post("/api/export-cover-letter-docx", json=payload)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        dl_res = self.client.get(data["download_url"])
+        self.assertEqual(dl_res.status_code, 200)
+
+        import io, zipfile
+        docx_bytes = io.BytesIO(dl_res.content)
+        with zipfile.ZipFile(docx_bytes) as z:
+            xml_content = z.read("word/document.xml").decode("utf-8")
+            self.assertIn('w:ascii="Playfair Display"', xml_content)
+            self.assertIn('w:hAnsi="Playfair Display"', xml_content)
+
 
 if __name__ == "__main__":
     unittest.main()
+
 
