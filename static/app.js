@@ -803,17 +803,34 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.tryTemplateFromLanding = (templateId) => {
-        if (loadSampleDataBtn) {
-            loadSampleDataBtn.click();
+        const select = document.getElementById('templateSelect');
+        if (select) {
+            select.value = templateId;
+            select.dispatchEvent(new Event('change'));
         }
-        setTimeout(() => {
-            const select = document.getElementById('templateSelect');
-            if (select) {
-                select.value = templateId;
-                select.dispatchEvent(new Event('change'));
-            }
-            switchView('editor');
-        }, 150);
+        window.selectedTemplateId = templateId;
+
+        const badge = document.getElementById('activeTemplateBadge');
+        const nameEl = document.getElementById('activeTemplateName');
+        const tplNames = {
+            'template_2_teal': 'Modern Executive (Teal)',
+            'template_1_blue': 'Executive Blue',
+            'template_3_navy': 'Navy Sidebar',
+            'template_6_classic': 'Classic Academic (Harvard)'
+        };
+        if (nameEl && tplNames[templateId]) {
+            nameEl.textContent = tplNames[templateId];
+        }
+        if (badge) {
+            badge.classList.remove('hidden');
+        }
+
+        switchView('input');
+
+        const formEl = document.getElementById('optimizeForm');
+        if (formEl) {
+            setTimeout(() => formEl.scrollIntoView({ behavior: 'smooth' }), 120);
+        }
     };
 
     // Default to landing page unless hash requested otherwise
@@ -3415,10 +3432,32 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
         }
 
+        const fileToUpload = window.currentResumeFile || currentFile || (resumeFileInput && resumeFileInput.files && resumeFileInput.files[0]);
+        let resumeText = resumeTextInput ? resumeTextInput.value.trim() : '';
+
+        if (!fileToUpload && !resumeText) {
+            if (typeof showStudioToast === 'function') {
+                showStudioToast('Please upload your CV file (PDF/Word) or paste your resume text to tailor your CV.');
+            } else {
+                alert('Please upload your CV file (PDF/Word) or paste your resume text to tailor your CV.');
+            }
+            if (resumeTextInput) resumeTextInput.focus();
+            return;
+        }
+
         let jdText = jdTextInput ? jdTextInput.value.trim() : '';
         if (!jdText) {
-            jdText = "Seeking a Senior Systems & Software Developer with experience in Python, FastAPI, Docker, Microservices, System Architecture, SQL databases, and technical leadership.";
-            if (jdTextInput) jdTextInput.value = jdText;
+            if (typeof showStudioToast === 'function') {
+                showStudioToast('Please paste the target job description or requirements to tailor your CV.');
+            } else {
+                alert('Please paste the target job description or requirements to tailor your CV.');
+            }
+            if (jdTextInput) jdTextInput.focus();
+            return;
+        }
+
+        if (templateSelect && templateSelect.value) {
+            currentTemplate = templateSelect.value;
         }
 
         const formData = new FormData();
@@ -3431,29 +3470,9 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('font_name', currentFont);
         formData.append('accent_color', currentAccent);
 
-        const fileToUpload = window.currentResumeFile || currentFile || (resumeFileInput && resumeFileInput.files && resumeFileInput.files[0]);
-        let resumeText = resumeTextInput ? resumeTextInput.value.trim() : '';
-
         if (fileToUpload) {
             formData.append('resume_file', fileToUpload);
         } else if (resumeText) {
-            formData.append('resume_text', resumeText);
-        } else {
-            resumeText = `SILA KIPNG'ETICH TANUI
-Computer Scientist | Systems Software Engineer
-silatanuikipngetich@gmail.com | +36 20 323 3673 | Debrecen, Hungary
-
-WORK EXPERIENCE
-Software Developer | Tech Solutions | 2022 - Present
-- Architected backend services and high-throughput APIs using Python and FastAPI.
-- Built automated deployment pipelines with Docker and CI/CD.
-
-EDUCATION
-B.Sc. Computer Science | University of Debrecen | 2023
-
-SKILLS
-Python, FastAPI, Docker, PostgreSQL, Kubernetes, AWS, Git, System Architecture`;
-            if (resumeTextInput) resumeTextInput.value = resumeText;
             formData.append('resume_text', resumeText);
         }
 

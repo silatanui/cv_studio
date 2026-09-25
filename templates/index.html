@@ -203,7 +203,7 @@
             <div class="lp-hero-content">
                 <div class="lp-badge-pill">
                     <span class="lp-badge-dot lp-radar-pulse"></span>
-                    <span>AI-Powered Career Intelligence • 100% Free &amp; Private</span>
+                    <span>Portfolio Project by Tanui Sila • Developer Showcase • Non-Commercial</span>
                 </div>
                 <h1 class="lp-hero-title">
                     Transform Your CV for the Job You Want.<br>
@@ -245,6 +245,22 @@
                         Instant Word &amp; PDF Export
                     </span>
                 </div>
+            </div>
+        </section>
+
+        <!-- Creator Transparency & Portfolio Note Banner -->
+        <section class="lp-creator-banner">
+            <div class="lp-creator-inner">
+                <div class="lp-creator-badge">Developer Portfolio Project</div>
+                <div class="lp-creator-content">
+                    <p class="lp-creator-text">
+                        <strong>Creator Transparency Note:</strong> CV Studio is an open personal engineering project developed by <strong>Tanui Sila Kipngetich</strong> as a way to enhance my portfolio and demonstrate full-stack AI system orchestration, zero-hallucination fact verification, and ATS document engineering. It is <strong>not a commercial enterprise application</strong>. You are completely free to test, tailor resumes, and download packages!
+                    </p>
+                </div>
+                <a href="https://tanuisila.dev" target="_blank" rel="noopener noreferrer" class="lp-creator-btn" title="Learn more about software engineer Tanui Sila">
+                    <span>About Tanui Sila</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
             </div>
         </section>
 
@@ -532,11 +548,11 @@
             <div class="lp-faq-container">
                 <div class="lp-faq-item" onclick="this.classList.toggle('open')">
                     <div class="lp-faq-question">
-                        <span>Is CV Studio really 100% free?</span>
+                        <span>Is CV Studio free, and what is its purpose?</span>
                         <svg class="lp-faq-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </div>
                     <div class="lp-faq-answer">
-                        Yes! CV Studio is completely free to use. There are no paywalls, no trial limits, and no watermark on exported documents. You get unlimited Word (.docx) and PDF downloads.
+                        Yes! CV Studio is completely free to use. It is a personal engineering portfolio project created by software engineer <strong>Tanui Sila Kipngetich</strong> to demonstrate advanced AI resume tailoring, semantic ATS matching, and full-stack software development. It is strictly non-commercial: there are no fees, paywalls, trial limits, or watermarks on generated documents.
                     </div>
                 </div>
 
@@ -610,7 +626,7 @@
                         </svg>
                     </div>
                     <span style="font-weight: 700; color: #ffffff;">CV Studio</span>
-                    <span>&copy; 2026. All rights reserved.</span>
+                    <span>&copy; 2026 Tanui Sila. Engineering Portfolio Project • Non-Commercial.</span>
                 </div>
                 <div class="lp-footer-links">
                     <a href="#lp-features" class="lp-footer-link">Features</a>
@@ -625,224 +641,152 @@
     </main>
 
     <!-- ======================================================== -->
-    <!-- STEP 1: INPUT & INGESTION STUDIO (SPACIOUS & CENTERED) -->
+    <!-- STEP 1: INPUT & UPLOAD STUDIO (CLEAN, SIMPLE, MODERN)   -->
     <!-- ======================================================== -->
     <main id="viewInputStudio" class="view-stage hidden">
         <div class="input-studio-container">
-            <!-- Hero Banner: Modern Value Proposition -->
-            <div class="input-hero">
-                <div class="hero-eyebrow">
-                    <span class="hero-eyebrow-pill">AI Job-Tailoring Platform</span>
+            <!-- Sleek Top Header -->
+            <div class="upload-studio-header">
+                <div class="upload-badge-pill">
+                    <span class="upload-badge-dot"></span>
+                    <span>AI Application Tailoring Studio</span>
                 </div>
-                <h1 class="input-hero-title">Your CV for the job you are applying for.</h1>
-                <p class="input-hero-sub">Upload your master CV and paste the vacancy. CV Studio analyzes requirements, maps factual evidence, and tailors your full application package without inventing experience.</p>
+                <h1 class="upload-studio-title">Tailor Your CV in 2 Quick Steps</h1>
+                <p class="upload-studio-sub">Upload your current resume and paste the target job requirements to generate a tailored, ATS-ready application package.</p>
                 
-                <!-- Trust Proof Points Row -->
-                <div class="hero-proof-chips-row">
-                    <span class="hero-proof-chip">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        <span>100% Fact-Grounded</span>
-                    </span>
-                    <span class="hero-proof-chip">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 16 12 12 8"></polygon></svg>
-                        <span>Evidence Mapping</span>
-                    </span>
-                    <span class="hero-proof-chip">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#009688" stroke-width="2.5"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20v-4"></path></svg>
-                        <span>6-Component Match Score</span>
-                    </span>
-                    <span class="hero-proof-chip">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        <span>Hiring Manager Review</span>
-                    </span>
+                <!-- Active Template Selection Chip (Visible if user chose a template from landing page) -->
+                <div id="activeTemplateBadge" class="active-template-chip hidden">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                    <span>Selected Template: <strong id="activeTemplateName">Modern Executive (Teal)</strong></span>
+                    <button type="button" class="btn-change-template" onclick="window.switchView('landing'); setTimeout(() => document.getElementById('lp-templates')?.scrollIntoView({behavior: 'smooth'}), 120);">Change</button>
                 </div>
 
-                <!-- Dual Hero CTAs (Blueprint Section 29) -->
-                <div class="hero-actions-row">
-                    <a href="#optimizeForm" class="btn btn-primary btn-hero-cta">
-                        <span>Tailor My CV</span>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
-                    </a>
-                    <button type="button" class="btn btn-outline btn-hero-cta" onclick="document.getElementById('loadSampleDataBtn') && document.getElementById('loadSampleDataBtn').click()">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
-                        <span>See an Example</span>
+                <!-- Demo Mode Notification Bar (Hidden unless demo candidate loaded) -->
+                <div id="demoModeBar" class="demo-mode-indicator-bar hidden">
+                    <div class="demo-bar-left">
+                        <span class="demo-badge">Sample Profile Loaded</span>
+                        <span class="demo-bar-text"><strong id="demoBarName">Sofia Katharina Berger</strong> <span class="demo-bar-role" id="demoBarRole">(Senior Consultant)</span></span>
+                    </div>
+                    <button type="button" class="btn-demo-clear" onclick="window.clearDemoMode()" title="Clear sample profile">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        <span>Clear</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Demo Mode Indicator Bar (Shown when sample candidate data is loaded) -->
-            <div id="demoModeBar" class="demo-mode-indicator-bar hidden">
-                <div class="demo-bar-left">
-                    <div class="demo-bar-icon">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                    </div>
-                    <span class="demo-badge">Sample Candidate</span>
-                    <span class="demo-bar-text">Loaded profile: <strong id="demoBarName">Sofia Katharina Berger</strong> <span class="demo-bar-role" id="demoBarRole">(Senior Digital Transformation Consultant)</span></span>
-                </div>
-                <button type="button" class="btn-demo-clear" onclick="window.clearDemoMode()" title="Clear sample profile and start with empty inputs">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    <span>Clear Profile</span>
-                </button>
-            </div>
-
-            <div class="input-card-box">
-                <div class="input-card-header">
-                    <div class="input-card-title-row">
-                        <h2 class="input-card-title">Prepare Your Application</h2>
-                        <span class="input-card-sub">Upload your master CV and paste the target vacancy requirements</span>
-                    </div>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <button type="button" class="btn btn-xs btn-outline" id="loadSampleDataBtn" title="Load sample candidate profile (Sofia Berger) and matching vacancy">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                            <span>Try Demo Candidate</span>
-                        </button>
-                        <button type="button" class="btn btn-xs btn-outline" id="loadStressTestBtn" onclick="if (window.loadStressTestData) window.loadStressTestData();" title="Load comprehensive 29-section stress test CV (Dr. Elena Vance) to verify all core, optional, and specialized sections">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                            <span>Stress Test (29 Sections)</span>
-                        </button>
-                    </div>
-                </div>
-
-                <form id="optimizeForm" class="input-form-grid" onsubmit="event.preventDefault(); if (window.executeOptimizationPipeline) window.executeOptimizationPipeline(event); return false;">
-                    <!-- Left: Resume Upload / Paste -->
-                    <div class="input-col">
-                        <div class="form-group">
-                            <div class="field-label-row">
-                                <label class="field-label">Candidate Master Resume</label>
-                                <div class="tab-group" id="resumeTabs">
-                                    <button type="button" class="tab-btn active" id="tabUploadBtn" data-tab="upload" onclick="window.switchResumeTab('upload')">File Upload</button>
-                                    <button type="button" class="tab-btn" id="tabPasteBtn" data-tab="paste" onclick="window.switchResumeTab('paste')">Paste Text</button>
-                                </div>
+            <!-- Two-Column Clean Card Layout -->
+            <form id="optimizeForm" class="upload-form-wrap" onsubmit="event.preventDefault(); if (window.executeOptimizationPipeline) window.executeOptimizationPipeline(event); return false;">
+                <div class="upload-cards-grid">
+                    
+                    <!-- STEP 1: Your CV -->
+                    <div class="upload-step-card">
+                        <div class="upload-card-header">
+                            <div class="step-num-pill">1</div>
+                            <div class="step-header-text">
+                                <h2 class="step-title">Candidate Master Resume</h2>
+                                <p class="step-desc">Upload your current CV (PDF or Word), or paste text</p>
                             </div>
+                            <div class="tab-pill-group" id="resumeTabs">
+                                <button type="button" class="tab-pill active" id="tabUploadBtn" data-tab="upload" onclick="window.switchResumeTab('upload')">File Upload</button>
+                                <button type="button" class="tab-pill" id="tabPasteBtn" data-tab="paste" onclick="window.switchResumeTab('paste')">Paste Text</button>
+                            </div>
+                        </div>
 
-                            <!-- Dropzone File Upload -->
-                            <div id="resumeUploadSection" class="tab-content active">
-                                <div class="dropzone" id="dropzone" onclick="window.triggerResumeFileInput(event)">
-                                    <input type="file" id="resumeFileInput" accept=".pdf,.docx,.doc,.txt" class="file-input-hidden" onchange="window.handleResumeFileChange(event)">
-                                    <div class="dropzone-content" id="dropzonePrompt">
-                                        <div class="dropzone-icon">
-                                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                                <polyline points="17 8 12 3 7 8"></polyline>
-                                                <line x1="12" y1="3" x2="12" y2="15"></line>
-                                            </svg>
-                                        </div>
-                                        <p class="dropzone-title">Click to browse or drag & drop your resume file</p>
-                                        <p class="dropzone-sub">Supports <strong>PDF, DOCX, TXT</strong> (Max 10MB)</p>
-                                        <button type="button" class="btn btn-xs btn-outline" id="browseFileBtn" onclick="window.triggerResumeFileInput(event)">Browse File</button>
+                        <!-- Dropzone File Upload -->
+                        <div id="resumeUploadSection" class="tab-content active">
+                            <div class="dropzone modern-dropzone" id="dropzone" onclick="window.triggerResumeFileInput(event)">
+                                <input type="file" id="resumeFileInput" accept=".pdf,.docx,.doc,.txt" class="file-input-hidden" onchange="window.handleResumeFileChange(event)">
+                                
+                                <div class="dropzone-content" id="dropzonePrompt">
+                                    <div class="dropzone-icon-box">
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="17 8 12 3 7 8"></polyline>
+                                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                                        </svg>
                                     </div>
-                                    <div class="file-preview-card hidden" id="filePreviewCard">
-                                        <div class="file-icon-box">
-                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                    <p class="dropzone-main-text">Drag &amp; drop your resume file here</p>
+                                    <p class="dropzone-sub-text">Supports PDF, DOCX, or TXT (Max 10MB)</p>
+                                    <button type="button" class="btn btn-sm btn-outline dropzone-browse-btn" id="browseFileBtn" onclick="window.triggerResumeFileInput(event)">Browse File</button>
+                                </div>
+
+                                <div class="file-preview-card hidden" id="filePreviewCard">
+                                    <div class="file-icon-box">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                    </div>
+                                    <div class="file-info">
+                                        <div class="file-name-row">
+                                            <span class="file-name" id="fileNameDisplay">filename.pdf</span>
+                                            <span class="file-ready-badge">Ready</span>
                                         </div>
-                                        <div class="file-info">
-                                            <div class="file-name-row">
-                                                <span class="file-name" id="fileNameDisplay">filename.pdf</span>
-                                                <span class="file-ready-badge">Ready</span>
-                                            </div>
-                                            <span class="file-size" id="fileSizeDisplay">120 KB</span>
-                                        </div>
-                                        <div class="file-card-actions">
-                                            <button type="button" class="btn btn-xs btn-outline" id="changeFileBtn" title="Change file" onclick="window.triggerResumeFileInput(event)">Change</button>
-                                            <button type="button" class="btn-icon" id="removeFileBtn" title="Remove file" onclick="window.removeResumeFile(event)">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                            </button>
-                                        </div>
+                                        <span class="file-size" id="fileSizeDisplay">120 KB</span>
+                                    </div>
+                                    <div class="file-card-actions">
+                                        <button type="button" class="btn btn-xs btn-outline" id="changeFileBtn" title="Change file" onclick="window.triggerResumeFileInput(event)">Change</button>
+                                        <button type="button" class="btn-icon" id="removeFileBtn" title="Remove file" onclick="window.removeResumeFile(event)">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Paste Text -->
-                            <div id="resumePasteSection" class="tab-content">
-                                <textarea id="resumeTextInput" class="form-textarea form-textarea-large" placeholder="Paste full resume text here including work experience, skills, and education..."></textarea>
-                            </div>
+                        <!-- Paste Text Section -->
+                        <div id="resumePasteSection" class="tab-content">
+                            <textarea id="resumeTextInput" class="form-textarea modern-step-textarea" placeholder="Paste your complete resume text here (experience, education, skills, projects)..."></textarea>
                         </div>
                     </div>
 
-                    <!-- Right: Modern Appealing Job Description Card -->
-                    <div class="input-col">
-                        <div class="modern-jd-card" id="modernJdCard">
-                            <div class="modern-jd-header">
-                                <div class="modern-jd-title-row">
-                                    <div class="jd-header-icon">
-                                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
-                                    </div>
-                                    <div>
-                                        <span class="modern-jd-title">Target Job Requirements</span>
-                                        <span class="modern-jd-sub">Paste complete role description, responsibilities, & qualifications</span>
-                                    </div>
-                                </div>
-                                <div class="modern-jd-actions">
-                                    <span class="jd-stat-badge" id="jdWordCount">0 words</span>
-                                    <button type="button" id="jdQuickPasteBtn" class="btn btn-xs btn-outline" title="Paste from clipboard">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
-                                        <span>Paste</span>
-                                    </button>
-                                    <button type="button" id="jdClearBtn" class="btn btn-xs btn-outline" title="Clear text">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                        <span>Clear</span>
-                                    </button>
-                                </div>
+                    <!-- STEP 2: Target Job Description -->
+                    <div class="upload-step-card">
+                        <div class="upload-card-header">
+                            <div class="step-num-pill">2</div>
+                            <div class="step-header-text">
+                                <h2 class="step-title">Target Job Description</h2>
+                                <p class="step-desc">Paste the vacancy requirements from LinkedIn, Indeed, etc.</p>
                             </div>
-                            <div class="modern-jd-body">
-                                <textarea id="jdTextInput" class="modern-jd-textarea" placeholder="Paste target Job Description here...&#10;• Job Title and Role Scope&#10;• Key Responsibilities & Required Deliverables&#10;• Required Technologies, Tools, & Frameworks&#10;• Qualifications, Experience, & Education Requirements"></textarea>
+                            <div class="jd-quick-actions">
+                                <span class="jd-count-pill" id="jdWordCount">0 words</span>
+                                <button type="button" id="jdQuickPasteBtn" class="btn btn-xs btn-outline" title="Paste from clipboard">Paste</button>
+                                <button type="button" id="jdClearBtn" class="btn btn-xs btn-outline" title="Clear text">Clear</button>
                             </div>
+                        </div>
+
+                        <div class="jd-textarea-wrap">
+                            <textarea id="jdTextInput" class="form-textarea modern-step-textarea" placeholder="Paste the target Job Description here...&#10;&#10;Key items to include:&#10;• Target Job Title&#10;• Responsibilities &amp; Key Deliverables&#10;• Required Technologies, Skills &amp; Qualifications"></textarea>
                         </div>
                     </div>
 
-                    <!-- Pre-flight Readiness Summary Row (Blueprint §29) -->
-                    <div class="input-readiness-row" id="inputReadinessRow">
-                        <!-- CV Extraction Summary -->
-                        <div id="cvExtractionSummary" class="readiness-summary-card hidden"></div>
+                </div>
 
-                        <!-- Post-JD Requirement Summary -->
-                        <div id="postAnalysisSummary" class="readiness-summary-card hidden"></div>
-                    </div>
+                <!-- Hidden containers for dynamic summary cards (used by pipeline) -->
+                <div class="input-readiness-row" id="inputReadinessRow">
+                    <div id="cvExtractionSummary" class="readiness-summary-card hidden"></div>
+                    <div id="postAnalysisSummary" class="readiness-summary-card hidden"></div>
+                </div>
 
-                    <!-- Bottom Action Row -->
-                    <div class="input-footer-row">
-                        <button type="button" id="submitBtn" class="btn btn-primary btn-cta btn-block" onclick="if (window.executeOptimizationPipeline) window.executeOptimizationPipeline(event); return false;">
-                            <span class="btn-icon-prefix" id="submitBtnIcon">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                            </span>
-                            <span id="submitBtnText">Tailor My Application Package</span>
+                <!-- Bottom Action & Optimization Bar -->
+                <div class="upload-submit-bar">
+                    <button type="button" id="submitBtn" class="btn-submit-tailor" onclick="if (window.executeOptimizationPipeline) window.executeOptimizationPipeline(event); return false;">
+                        <span class="btn-icon-prefix" id="submitBtnIcon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        </span>
+                        <span id="submitBtnText">Tailor &amp; Optimize My Application</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </button>
+
+                    <div class="upload-fallback-links">
+                        <span>Want to test the tool first?</span>
+                        <button type="button" class="btn-link-sample" id="loadSampleDataBtn" title="Load sample candidate profile">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+                            <span>Try with Sample Candidate (Sofia Berger)</span>
                         </button>
                     </div>
-                </form>
-            </div>
-
-            <!-- Feature Highlights Grid (Blueprint Section 24) -->
-            <div class="feature-highlights-row">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 16 12 12 8"></polygon></svg>
-                    </div>
-                    <div>
-                        <h4 class="feature-title">Requirement-to-Evidence Mapping</h4>
-                        <p class="feature-desc">Every vacancy requirement resolves to Strong, Partial, or Indirect factual proof without inventing ungrounded claims.</p>
-                    </div>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                    </div>
-                    <div>
-                        <h4 class="feature-title">Simulated Recruiter Review</h4>
-                        <p class="feature-desc">Hiring committee 6-second scan revealing standout strengths, buried qualifications, and callback optimizations.</p>
-                    </div>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                    </div>
-                    <div>
-                        <h4 class="feature-title">Complete Application Package</h4>
-                        <p class="feature-desc">ATS-compliant Word (.docx), print-ready PDF, targeted cover letter, and role-specific interview prep talking points.</p>
-                    </div>
-                </div>
-            </div>
+            </form>
         </div>
     </main>
+
 
     <!-- ======================================================== -->
     <!-- STEP 2: FULLSCREEN RESUME STUDIO & EDITOR (UNCLUTTERED) -->

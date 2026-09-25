@@ -12218,6 +12218,76 @@ canvas {
     color: #10b981;
 }
 
+/* Creator Transparency & Portfolio Note Banner */
+.lp-creator-banner {
+    background: #0f172a;
+    border-top: 1px solid #1e293b;
+    border-bottom: 1px solid #1e293b;
+    padding: 1.25rem 1.5rem;
+}
+
+.lp-creator-inner {
+    max-width: 1140px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.lp-creator-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.85rem;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #38bdf8;
+    white-space: nowrap;
+}
+
+.lp-creator-content {
+    flex: 1;
+    min-width: 280px;
+}
+
+.lp-creator-text {
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: #94a3b8;
+    margin: 0;
+}
+
+.lp-creator-text strong {
+    color: #f8fafc;
+}
+
+.lp-creator-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    color: #f1f5f9;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    white-space: nowrap;
+}
+
+.lp-creator-btn:hover {
+    background: #334155;
+    border-color: #475569;
+    color: #38bdf8;
+}
+
 /* Stats Counter Section */
 .lp-metrics-strip {
     background: #0b1120;
@@ -12695,5 +12765,352 @@ canvas {
         animation: none;
     }
 }
+
+/* ======================================================== */
+/* REDESIGNED INPUT & UPLOAD STUDIO                         */
+/* ======================================================== */
+#viewInputStudio {
+    background: #f8fafc;
+    min-height: calc(100vh - 64px);
+    padding: 3rem 1.5rem 5rem 1.5rem;
+}
+
+#viewInputStudio .input-studio-container {
+    max-width: 1080px;
+    margin: 0 auto;
+}
+
+.upload-studio-header {
+    text-align: center;
+    max-width: 680px;
+    margin: 0 auto 2.25rem auto;
+}
+
+.upload-badge-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 9999px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #2563eb;
+    margin-bottom: 0.85rem;
+}
+
+.upload-badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #2563eb;
+    display: inline-block;
+}
+
+.upload-studio-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.025em;
+    margin-bottom: 0.65rem;
+}
+
+.upload-studio-sub {
+    font-size: 1.05rem;
+    color: #64748b;
+    line-height: 1.6;
+    margin: 0 auto;
+}
+
+/* Active Template Selection Chip */
+.active-template-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1.25rem;
+    padding: 0.45rem 1rem;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    color: #334155;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.active-template-chip svg {
+    color: #0d9488;
+}
+
+.active-template-chip strong {
+    color: #0f172a;
+}
+
+.btn-change-template {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #2563eb;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.btn-change-template:hover {
+    background: #e2e8f0;
+}
+
+/* Upload Cards Grid */
+.upload-cards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.75rem;
+    margin-bottom: 2rem;
+}
+
+.upload-step-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.75rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.upload-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    margin-bottom: 1.25rem;
+}
+
+.step-num-pill {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #0f172a;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.step-header-text {
+    flex: 1;
+}
+
+.step-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 2px 0;
+}
+
+.step-desc {
+    font-size: 0.82rem;
+    color: #64748b;
+    margin: 0;
+}
+
+.tab-pill-group {
+    display: flex;
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 8px;
+    gap: 2px;
+}
+
+.tab-pill {
+    background: transparent;
+    border: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #64748b;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.tab-pill.active {
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+/* Modern Dropzone */
+.modern-dropzone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    min-height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modern-dropzone:hover,
+.modern-dropzone.dragover {
+    border-color: #2563eb;
+    background-color: #eff6ff;
+}
+
+.dropzone-icon-box {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+    margin: 0 auto 1rem auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.dropzone-main-text {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.35rem 0;
+}
+
+.dropzone-sub-text {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 0 0 1.25rem 0;
+}
+
+.dropzone-browse-btn {
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+/* File Ready Preview Card */
+.modern-dropzone .file-preview-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-align: left;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.modern-step-textarea {
+    width: 100%;
+    height: 260px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 1rem;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: #0f172a;
+    background: #ffffff;
+    resize: none;
+    box-sizing: border-box;
+    font-family: inherit;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.modern-step-textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.jd-quick-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.jd-count-pill {
+    font-size: 0.72rem;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+/* Upload Bottom Submit Bar */
+.upload-submit-bar {
+    text-align: center;
+    max-width: 540px;
+    margin: 0 auto;
+}
+
+.btn-submit-tailor {
+    width: 100%;
+    background: #2563eb;
+    color: #ffffff;
+    border: 1px solid #3b82f6;
+    border-radius: 10px;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.btn-submit-tailor:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.upload-fallback-links {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-link-sample {
+    background: transparent;
+    border: none;
+    color: #2563eb;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0;
+    font-size: inherit;
+}
+
+.btn-link-sample:hover {
+    color: #1d4ed8;
+}
+
+@media (max-width: 860px) {
+    .upload-cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 
 
