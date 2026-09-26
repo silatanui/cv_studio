@@ -3567,17 +3567,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 11. Interactive In-Between Section Insertion Dividers
     function renderSectionInsertDividers() {
-        document.querySelectorAll('.section-insert-divider').forEach(d => d.remove());
+        document.querySelectorAll('.section-insert-divider, .sec-insert-divider').forEach(d => d.remove());
 
         const columns = [cvLeftCol, cvRightCol].filter(Boolean);
         columns.forEach(col => {
             const sections = Array.from(col.children).filter(el => el.classList.contains('cv-section') && !el.classList.contains('hidden'));
             if (sections.length === 0) return;
 
-            // Before first section
-            col.insertBefore(createSectionInsertDivider(col, sections[0], 'before'), sections[0]);
-
-            // After each section
+            // In-between and after sections only (never insert an empty spacer at the very top of the column)
             sections.forEach(sec => {
                 const divider = createSectionInsertDivider(col, sec, 'after');
                 if (sec.nextSibling) {
@@ -3587,7 +3584,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
-
     }
 
     function createSectionInsertDivider(col, targetSec, position) {
@@ -4337,9 +4333,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Summary
         const origSummary = (parsed_resume.summary || '').trim();
-        const optSummary = (tailored_cv.professional_summary || tailored_cv.summary || origSummary || '').trim();
+        const optSummary = (window.lastEditedSummary || tailored_cv.professional_summary || tailored_cv.summary || origSummary || '').trim();
         if (cvSummary) {
-            if (origSummary && optSummary && origSummary !== optSummary) {
+            if (origSummary && optSummary && origSummary !== optSummary && !window.lastEditedSummary) {
                 cvSummary.innerHTML = computeWordDiff(origSummary, optSummary);
                 cvSummary.setAttribute('data-orig', origSummary);
                 cvSummary.setAttribute('data-opt', optSummary);
@@ -4352,6 +4348,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 cvSummary.removeAttribute('data-reasoning');
                 cvSummary.classList.remove('has-ai-suggestion');
             }
+            cvSummary.oninput = syncLiveSummaryToState;
+            cvSummary.onblur = syncLiveSummaryToState;
         }
         if (secSummary) secSummary.classList.toggle('hidden', !optSummary);
 
@@ -4797,6 +4795,39 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleVisualReviewSideBtn.addEventListener('click', () => {
             setVisualReviewState(!isVisualReviewActive);
         });
+    function getCleanSummaryText() {
+        const sumElem = document.getElementById('cvSummary') || document.querySelector('.cv-summary-text') || document.querySelector('#secSummary .cv-text');
+        if (!sumElem) return (window.lastEditedSummary || '');
+        const clone = sumElem.cloneNode(true);
+        // Strip deletions from word diffs and any UI artifacts
+        clone.querySelectorAll('.ai-diff-del, .no-print, button, .section-actions, .para-diff-action-bar').forEach(el => el.remove());
+        // Unwrap insertions or marks
+        clone.querySelectorAll('.ai-diff-ins, mark, .highlight-span').forEach(el => {
+            const parent = el.parentNode;
+            if (parent) {
+                while (el.firstChild) parent.insertBefore(el.firstChild, el);
+                parent.removeChild(el);
+            }
+        });
+        return clone.textContent.trim();
+    }
+
+    function syncLiveSummaryToState() {
+        const cleanText = getCleanSummaryText();
+        if (cleanText) {
+            window.lastEditedSummary = cleanText;
+            if (window.lastOptimizationResult && window.lastOptimizationResult.tailored_cv) {
+                window.lastOptimizationResult.tailored_cv.professional_summary = cleanText;
+                window.lastOptimizationResult.tailored_cv.summary = cleanText;
+            }
+        }
+    }
+    window.getCleanSummaryText = getCleanSummaryText;
+    window.syncLiveSummaryToState = syncLiveSummaryToState;
+
+    if (cvSummary) {
+        cvSummary.addEventListener('input', syncLiveSummaryToState);
+        cvSummary.addEventListener('blur', syncLiveSummaryToState);
     }
 
     function computeWordDiff(origText, optText) {
@@ -4970,6 +5001,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => targetElem.classList.remove('rewrite-highlight-flash'), 1500);
 
         hideAiSuggestionPopover();
+        syncLiveSummaryToState();
         showStudioToast('Changes accepted! Updated with clean phrasing.');
     }
 
@@ -5004,6 +5036,7 @@ document.addEventListener('DOMContentLoaded', () => {
         targetElem.removeAttribute('data-reasoning');
 
         hideAiSuggestionPopover();
+        syncLiveSummaryToState();
         showStudioToast('Changes declined. Original phrasing restored.');
     }
 
@@ -6717,11 +6750,24 @@ ${languages.join(', ') || 'None listed'}
                 throw new Error('Document element not found.');
             }
 
-            // ─── PRODUCTION-READY HTML2PDF EXPORT ENGINE ────────────────────────
-            // Uses html2pdf library with professional margins, spacing, and settings.
-            // No browser print dependency — proper PDF rendering for production use.
-            document.body.classList.add('is-exporting-pdf');
-            showStudioToast(`Rendering ${pdfFilename}…`);
+            // ─── HIGH-FIDELITY VECTOR IFRAME PRINT ENGINE ────────────────────────
+            // Uses isolated hidden iframe with browser CSS Paged Media.
+            // Guarantees 100% vector typography, exact font kerning, natural column pagination,
+            // non-clipped 50% circular avatars, and zero canvas distortion.
+            showStudioToast(`Preparing ${pdfFilename}…`);
+
+            // Collect all stylesheet texts from the page to inject into the iframe
+            const sheetTexts = [];
+            for (const sheet of Array.from(document.styleSheets)) {
+                try {
+                    const rules = Array.from(sheet.cssRules || []).map(r => r.cssText).join('\n');
+                    sheetTexts.push(rules);
+                } catch (e) {
+                    if (sheet.href) {
+                        sheetTexts.push(`@import url("${sheet.href}");`);
+                    }
+                }
+            }
 
             // Clone the document element for export
             const clone = targetElement.cloneNode(true);
@@ -6730,7 +6776,7 @@ ${languages.join(', ') || 'None listed'}
             const uiSelectors = [
                 '.no-print', '.btn-bullet-del', '.btn-add-bullet', '.btn-add-achievement',
                 '.exp-bullet-controls', '.ach-controls', '.section-actions', '.btn-sec-drag',
-                '.sec-insert-divider', '.para-diff-action-bar', '.cv-gap-badge-wrap',
+                '.section-insert-divider', '.sec-insert-divider', '.para-diff-action-bar', '.cv-gap-badge-wrap',
                 '.avatar-upload-overlay', '.avatar-reset-btn', '.btn-edu-del',
                 '.btn-edu-sub-del', '.btn-academic-del', '.btn-lang-del',
                 '.btn-skill-cat-del', '.btn-skill-tag-del', '.btn-add-skill-pill',
@@ -6739,7 +6785,11 @@ ${languages.join(', ') || 'None listed'}
             ];
             clone.querySelectorAll(uiSelectors.join(',')).forEach(el => el.remove());
 
-            // Strip highlight markers
+            // Remove hidden alternative headers and empty full-width summary blocks
+            clone.querySelectorAll('header.hidden, .cv-header-tpl2.hidden, .cv-header-tpl5.hidden, .cv-header-tpl6.hidden, .cv-header-tpl7.hidden, .cv-header-tpl8.hidden, .cv-header-tpl9.hidden, .cv-header-tpl10.hidden, .cv-header-tpl11.hidden').forEach(el => el.remove());
+            clone.querySelectorAll('.cv-fullwidth-summary:empty, #cvFullWidthSummaryTop:empty').forEach(el => el.remove());
+
+            // Strip highlight markers and AI diff elements
             clone.querySelectorAll('mark, .cv-match-highlight, .cv-edu-match, .cv-gap-highlight, .highlight-span, .ai-diff-ins, .ai-diff-del, .rewrite-highlight-flash, .tag-keyword-highlight, .keyword-matched').forEach(m => {
                 const parent = m.parentNode;
                 if (parent) {
@@ -6763,46 +6813,176 @@ ${languages.join(', ') || 'None listed'}
                 }
             });
 
-            // Prepare element for html2pdf
-            const element = document.createElement('div');
-            element.style.padding = '0';
-            element.style.margin = '0';
-            element.appendChild(clone);
+            // Build the isolated iframe
+            const iframe = document.createElement('iframe');
+            iframe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;opacity:0;border:none;pointer-events:none;';
+            document.body.appendChild(iframe);
 
-            // Production-ready html2pdf configuration with professional margins
-            const html2pdfOptions = {
-                margin: [15, 18, 15, 15],  // [top, right, bottom, left] 15-18mm margins — allows avatar badge to render without clipping
-                filename: pdfFilename,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: {
-                    scale: 2,
-                    useCORS: true,
-                    logging: false,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff'
-                },
-                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4', compress: true },
-                pagebreak: {
-                    mode: 'css'
-                }
+            const iDoc = iframe.contentDocument || iframe.contentWindow.document;
+            iDoc.open();
+            iDoc.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>${pdfFilename.replace(/\.pdf$/i, '')}</title>
+<style>
+${sheetTexts.join('\n')}
+
+/* ── Isolated Vector PDF Print Overrides ─────────────────── */
+@page {
+    size: A4 portrait;
+    margin: 12mm 10mm 12mm 10mm;
+}
+
+*, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+}
+
+html, body {
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
+/* Document sheet fills the printable page width with zero outer margin */
+.document-sheet,
+.cover-letter-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
+[contenteditable] {
+    outline: none !important;
+    background: transparent !important;
+}
+
+/* Column and section containers flow naturally across pages — NEVER force whole sections to jump */
+.cv-section, .cv-column, .cv-left-col, .cv-right-col,
+.cv-body, .cv-exp-bullets, .cv-achievements-list,
+#secReferees, .cv-referees-container {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+}
+
+/* Prevent splitting inside individual items */
+.cv-exp-bullet-row, .cv-exp-item, .cv-achievement-item,
+.cv-edu-item, .cv-skill-cat, .cv-ach-item, .cv-lang-item,
+.cv-cert-item, .cv-academic-item, .cv-contact-item-bullet,
+.contact-item, .cl-paragraph, .cl-recipient-box,
+.cl-signature-block, .cv-referees-statement-card, .ref-statement-text, .cv-referee-card, li {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+}
+
+/* Keep headings with their following content */
+.cv-section-heading, .cv-section-header-row {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+}
+
+/* Strip all highlight colors from final output */
+mark, .cv-match-highlight, .cv-edu-match, .cv-gap-highlight,
+.highlight-span, .ai-diff-ins, .ai-diff-del,
+.rewrite-highlight-flash, .tag-keyword-highlight, .keyword-matched {
+    background-color: transparent !important;
+    background: transparent !important;
+    color: inherit !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    text-decoration: none !important;
+}
+
+/* Explicit circular avatar preservation — strictly circular 50% radius */
+.cv-avatar-dark-circle, .cv-initials-badge,
+.cv-sidebar-circle-badge, .cv-avatar-col-tpl5,
+.cl-avatar-dark-circle, .cl-av-col {
+    display: flex !important;
+    visibility: visible !important;
+    border-radius: 50% !important;
+    -webkit-border-radius: 50% !important;
+    overflow: hidden !important;
+    flex-shrink: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
+
+.cv-header-tpl2 {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.cv-header-right {
+    margin-right: 6px !important;
+    flex-shrink: 0 !important;
+}
+
+.cv-fullwidth-summary:empty,
+#cvFullWidthSummaryTop:empty {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 0 !important;
+    border: none !important;
+}
+</style>
+</head>
+<body>
+${clone.outerHTML}
+</body>
+</html>`);
+            iDoc.close();
+
+            const triggerPrint = async () => {
+                try {
+                    if (document.fonts && document.fonts.ready) {
+                        await document.fonts.ready;
+                    }
+                    if (iDoc.fonts && iDoc.fonts.ready) {
+                        await iDoc.fonts.ready;
+                    }
+                } catch (_) {}
+
+                setTimeout(() => {
+                    try {
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                        showStudioToast(`Print dialog ready: choose "Save as PDF"`);
+                    } finally {
+                        setTimeout(() => {
+                            if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+                            exportPdfBtn.disabled = false;
+                            exportPdfBtn.innerHTML = origBtnHtml;
+                        }, 1200);
+                    }
+                }, 200);
             };
 
-            // Trigger production PDF generation
-            if (window.html2pdf && typeof window.html2pdf === 'function') {
-                await window.html2pdf().set(html2pdfOptions).from(element).save();
-                showStudioToast(`Downloaded ${pdfFilename} successfully!`);
+            if (iframe.contentWindow.document.readyState === 'complete') {
+                await triggerPrint();
             } else {
-                throw new Error('PDF library not available. Please refresh and try again.');
+                iframe.onload = triggerPrint;
             }
-
-            exportPdfBtn.disabled = false;
-            exportPdfBtn.innerHTML = origBtnHtml;
-            document.body.classList.remove('is-exporting-pdf');
+            return;
 
         } catch (err) {
             console.error('PDF export error:', err);
             showStudioToast(`PDF Export Error: ${err.message}`);
-            document.body.classList.remove('is-exporting-pdf');
             exportPdfBtn.disabled = false;
             exportPdfBtn.innerHTML = origBtnHtml;
         }
@@ -7092,9 +7272,13 @@ ${languages.join(', ') || 'None listed'}
             if (parsedCustom.length > 0) liveCustomSecs = parsedCustom;
         }
 
+        const cleanSummary = (typeof getCleanSummaryText === 'function') ? getCleanSummaryText() : ((cvSummary && cvSummary.textContent.trim()) || '');
+        const activeSummary = cleanSummary || window.lastEditedSummary || baseTailored.professional_summary || baseTailored.summary || 'Experienced professional with demonstrated background in software development and systems engineering.';
+
         const tailored_cv = {
             contact: contact_info,
-            professional_summary: (cvSummary && cvSummary.textContent.trim()) || baseTailored.professional_summary || baseTailored.summary || 'Experienced professional with demonstrated background in software development and systems engineering.',
+            professional_summary: activeSummary,
+            summary: activeSummary,
             work_experience: liveWorkExp,
             education: liveEdu,
             skills_section: liveSkillsSection,

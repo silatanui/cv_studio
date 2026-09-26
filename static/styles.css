@@ -1986,10 +1986,11 @@ mark {
         page-break-inside: avoid !important;
     }
     
-    /* Keep summary and first content item together */
-    .cv-section:first-of-type {
-        break-inside: avoid !important;
-        page-break-inside: avoid !important;
+    /* Allow all sections to flow naturally across pages - NEVER force whole sections onto next page */
+    .cv-section, .cv-column, .cv-left-col, .cv-right-col,
+    .cv-body, .cv-exp-bullets, .cv-achievements-list {
+        break-inside: auto !important;
+        page-break-inside: auto !important;
     }
     
     /* Reduce orphaning of section headers but allow natural page breaks */
@@ -2027,13 +2028,16 @@ mark {
         color-adjust: exact !important;
     }
     
-    /* Preserve avatar badges without clipping */
+    /* Preserve circular avatar badges without distortion or edge clipping */
     .cv-avatar-dark-circle, .cv-initials-badge,
     .cv-sidebar-circle-badge, .cv-avatar-col-tpl5,
     .cl-avatar-dark-circle, .cl-av-col {
         display: flex !important;
         visibility: visible !important;
-        overflow: visible !important;
+        border-radius: 50% !important;
+        -webkit-border-radius: 50% !important;
+        overflow: hidden !important;
+        flex-shrink: 0 !important;
     }
     
     /* Ensure document wrapper doesn't clip edge elements */
@@ -3307,6 +3311,9 @@ mark {
     padding-bottom: 0.85rem;
     border-bottom: 2px solid #009688;
     gap: 1.5rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 /* Template 1: Modern Executive (Executive Blue) Overrides */
@@ -3418,6 +3425,8 @@ mark {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-right: 6px;
+    flex-shrink: 0;
 }
 
 /* Vibrant Teal Initials Avatar Circle Badge */
@@ -3427,6 +3436,8 @@ mark {
     background-color: #00a896;
     color: #ffffff;
     border-radius: 50% !important;
+    -webkit-border-radius: 50% !important;
+    overflow: hidden !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3438,19 +3449,28 @@ mark {
 }
 
 /* Full-Width Summary Banner (Used by Template 1) */
+.cv-fullwidth-summary:empty,
+#cvFullWidthSummaryTop:empty {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    height: 0 !important;
+}
+
 .cv-fullwidth-summary {
     margin-bottom: 0.85rem;
     padding-bottom: 0.65rem;
 }
 
-.template-template_1_blue .cv-fullwidth-summary {
+.template-template_1_blue .cv-fullwidth-summary:not(:empty) {
     display: block;
     border-bottom: 1.5px solid #1565C0;
 }
 
 .template-template_2_teal .cv-fullwidth-summary,
 .template-modern_two_column .cv-fullwidth-summary {
-    display: none;
+    display: none !important;
 }
 
 /* Distinct Column Layout Grids */
@@ -8188,8 +8208,10 @@ mark {
     .cv-avatar-col-tpl5 {
         display: flex !important;
         visibility: visible !important;
-        border-radius: 0 !important;
-        -webkit-border-radius: 0 !important;
+        border-radius: 50% !important;
+        -webkit-border-radius: 50% !important;
+        overflow: hidden !important;
+        flex-shrink: 0 !important;
         background-color: #0f172a !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
@@ -8201,8 +8223,10 @@ mark {
     .cl-av-col {
         display: flex !important;
         visibility: visible !important;
-        border-radius: 0 !important;
-        -webkit-border-radius: 0 !important;
+        border-radius: 50% !important;
+        -webkit-border-radius: 50% !important;
+        overflow: hidden !important;
+        flex-shrink: 0 !important;
         background-color: #0f172a !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
@@ -9249,6 +9273,7 @@ mark {
 .is-exporting-pdf .ach-controls,
 .is-exporting-pdf .section-actions,
 .is-exporting-pdf .btn-sec-drag,
+.is-exporting-pdf .section-insert-divider,
 .is-exporting-pdf .sec-insert-divider,
 .is-exporting-pdf .para-diff-action-bar,
 .is-exporting-pdf #aiSuggestionPopover,
@@ -9764,8 +9789,6 @@ canvas {
 .is-exporting-pdf .cl-paragraph,
 .is-exporting-pdf .cl-recipient-box,
 .is-exporting-pdf .cl-signature-block,
-.is-exporting-pdf #secReferees,
-.is-exporting-pdf .cv-referees-container,
 .is-exporting-pdf .cv-referees-statement-card,
 .is-exporting-pdf .ref-statement-text,
 .is-exporting-pdf .cv-referee-card,

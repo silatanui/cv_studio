@@ -1224,7 +1224,10 @@ Keywords: {', '.join(jd.priority_keywords[:10])}
 
         # Step 2: Optimize Overview (Summary, Skills, Key Achievements)
         overview_prompt = f"""
-You are an executive resume writer. Craft a targeted professional summary, skills section, and achievements for the candidate targeting the job '{jd.job_title}' at '{jd.company_name or 'target organization'}'.
+You are an executive resume writer. Craft a concise, high-impact professional summary, skills section, and achievements for the candidate targeting the job '{jd.job_title}' at '{jd.company_name or 'target organization'}'.
+
+CRITICAL SUMMARY REQUIREMENT:
+The professional_summary MUST be concise and punchy: exactly 2 to 3 sentences, between 40 and 55 words total. Highlight core expertise and 2-3 target keywords with zero introductory fluff.
 
 TARGET JOB REQUIREMENTS:
 {jd.model_dump_json()}
@@ -1238,7 +1241,7 @@ Achievements: {[a.model_dump() for a in resume.key_achievements]}
             completion = client.chat.completions.parse(
                 model=model,
                 messages=[
-                    {"role": "system", "content": "You craft ATS-optimized resume summaries and skill sections. CRITICAL: Never fabricate or force a key_achievements section if the candidate's original resume has no achievements. Return key_achievements as an empty list if none were originally provided."},
+                    {"role": "system", "content": "You craft ATS-optimized resume summaries and skill sections. CRITICAL: Keep professional_summary concise, punchy, and strictly 2 to 3 sentences (under 55 words). Never fabricate or force a key_achievements section if the candidate's original resume has no achievements. Return key_achievements as an empty list if none were originally provided."},
                     {"role": "user", "content": overview_prompt}
                 ],
                 response_format=_TailoredOverview,
