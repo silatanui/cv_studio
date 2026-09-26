@@ -4194,7 +4194,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         `;
                     });
 
-                    const jobTitle = cleanMarkdownPlainText(exp.job_title || exp.title || exp.role || 'Professional Role');
+                    const jobTitle = cleanMarkdownPlainText(exp.job_title || exp.position_title || exp.role_title || exp.position || exp.title || exp.role || 'Professional Role');
                     const company = cleanMarkdownPlainText(exp.company || exp.company_name || exp.employer || 'Company');
                     const dateStr = (exp.start_date || exp.end_date)
                         ? `${escapeHtml(exp.start_date || '')} - ${escapeHtml(exp.end_date || '')}`
@@ -6678,36 +6678,34 @@ ${languages.join(', ') || 'None listed'}
         const origBtnHtml = exportPdfBtn.innerHTML;
         exportPdfBtn.innerHTML = `
             <span class="spinner-ring" style="width:13px;height:13px;border-width:2px;display:inline-block;margin-right:3px;"></span>
-            <span>Preparing Preview...</span>
+            <span>Rendering PDF...</span>
         `;
 
         try {
-            // 1. Determine clean AI suggested document filename (e.g. David_Koroma_CV_Deputy_Minister_Local_Government.pdf)
+            // 1. Determine clean AI suggested document filename
             let baseDocTitle = (cvDocTitleInput && cvDocTitleInput.value.trim()) || computeSmartDocTitle(currentDocMode === 'cl' ? 'Cover_Letter' : 'CV');
             baseDocTitle = baseDocTitle.replace(/\.pdf$/i, '');
             const pdfFilename = `${baseDocTitle}.pdf`;
 
-            // 2. Hide match reviews, popovers, and floating toolbars before export
+            // 2. Hide UI elements before export
             setVisualReviewState(false);
             hideAiSuggestionPopover();
             if (floatingAiToolbar) floatingAiToolbar.classList.add('hidden');
             if (clParagraphRephraseBar) clParagraphRephraseBar.classList.add('hidden');
 
-            // Strip any remaining mark tags or visual review spans
+            // Strip visual review elements
             if (resumePreviewCanvas) {
                 resumePreviewCanvas.querySelectorAll('.cv-gap-badge-wrap').forEach(el => el.remove());
                 resumePreviewCanvas.querySelectorAll('mark, .highlight-span, .rewrite-highlight-flash').forEach(m => {
                     const parent = m.parentNode;
                     if (parent) {
-                        while (m.firstChild) {
-                            parent.insertBefore(m.firstChild, m);
-                        }
+                        while (m.firstChild) parent.insertBefore(m.firstChild, m);
                         parent.removeChild(m);
                     }
                 });
             }
 
-            // 3. Ensure avatar badges and initials are populated and preserved
+            // 3. Render avatar badges
             renderAllAvatarBadges();
 
             // 4. Select target element
@@ -6719,31 +6717,16 @@ ${languages.join(', ') || 'None listed'}
                 throw new Error('Document element not found.');
             }
 
-            // ─── IFRAME PRINT ENGINE ─────────────────────────────────────────────
-            // Uses the browser's native PDF renderer (same quality as Ctrl+P) instead
-            // of html2pdf's canvas-screenshot approach. Text is real vector text:
-            // crisp, selectable, searchable, and perfectly font-rendered.
+            // ─── PRODUCTION-READY HTML2PDF EXPORT ENGINE ────────────────────────
+            // Uses html2pdf library with professional margins, spacing, and settings.
+            // No browser print dependency — proper PDF rendering for production use.
             document.body.classList.add('is-exporting-pdf');
-            showStudioToast(`Preparing ${pdfFilename}…`);
+            showStudioToast(`Rendering ${pdfFilename}…`);
 
-            // Collect all stylesheet text from the page to inject into the iframe
-            const sheetTexts = [];
-            for (const sheet of Array.from(document.styleSheets)) {
-                try {
-                    const rules = Array.from(sheet.cssRules || []).map(r => r.cssText).join('\n');
-                    sheetTexts.push(rules);
-                } catch (e) {
-                    // Cross-origin sheets (e.g. Google Fonts) — include via link href instead
-                    if (sheet.href) {
-                        sheetTexts.push(`@import url("${sheet.href}");`);
-                    }
-                }
-            }
-
-            // Clone the document node so we can safely mutate it for printing
+            // Clone the document element for export
             const clone = targetElement.cloneNode(true);
 
-            // Strip all UI-only elements from the clone that must not appear in the PDF
+            // Strip all UI-only elements from the clone
             const uiSelectors = [
                 '.no-print', '.btn-bullet-del', '.btn-add-bullet', '.btn-add-achievement',
                 '.exp-bullet-controls', '.ach-controls', '.section-actions', '.btn-sec-drag',
@@ -6756,7 +6739,7 @@ ${languages.join(', ') || 'None listed'}
             ];
             clone.querySelectorAll(uiSelectors.join(',')).forEach(el => el.remove());
 
-            // Strip highlight markers (yellow boxes) — unwanted in the final PDF
+            // Strip highlight markers
             clone.querySelectorAll('mark, .cv-match-highlight, .cv-edu-match, .cv-gap-highlight, .highlight-span, .ai-diff-ins, .ai-diff-del, .rewrite-highlight-flash, .tag-keyword-highlight, .keyword-matched').forEach(m => {
                 const parent = m.parentNode;
                 if (parent) {
@@ -6765,179 +6748,60 @@ ${languages.join(', ') || 'None listed'}
                 }
             });
 
-            // Strip contenteditable outlines
+            // Remove contenteditable attributes
             clone.querySelectorAll('[contenteditable]').forEach(el => {
                 el.removeAttribute('contenteditable');
                 el.style.outline = 'none';
             });
 
-            // Enforce selected font typography across the cloned document
-            const fontCls = getFontClass(currentFont);
+            // Enforce font family
             const fontFamStr = getFontFamilyString(currentFont);
-            clone.classList.add(fontCls);
             clone.style.setProperty('font-family', fontFamStr, 'important');
             clone.querySelectorAll('*').forEach(el => {
-                if (el.tagName && el.tagName.toLowerCase() !== 'svg' && el.tagName.toLowerCase() !== 'path') {
+                if (el.tagName && !['SVG', 'PATH'].includes(el.tagName.toUpperCase())) {
                     el.style.setProperty('font-family', fontFamStr, 'important');
                 }
             });
 
-            // Extract Google Fonts and external font stylesheets from main document head
-            const headLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"], link[rel="preconnect"]'))
-                .map(l => l.outerHTML)
-                .join('\n');
+            // Prepare element for html2pdf
+            const element = document.createElement('div');
+            element.style.padding = '0';
+            element.style.margin = '0';
+            element.appendChild(clone);
 
-            // Build the iframe with a scoped print stylesheet
-            const iframe = document.createElement('iframe');
-            iframe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;opacity:0;border:none;pointer-events:none;';
-            document.body.appendChild(iframe);
-
-            const iDoc = iframe.contentDocument || iframe.contentWindow.document;
-            iDoc.open();
-            iDoc.write(`<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>${pdfFilename.replace(/\.pdf$/i, '')}</title>
-${headLinks}
-<style>
-${sheetTexts.join('\n')}
-
-/* ── Print isolation overrides ────────────────────────── */
-@page {
-    size: A4 portrait;
-    margin: 14mm 12mm 14mm 12mm;
-}
-
-*, *::before, *::after {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    color-adjust: exact !important;
-}
-
-html, body {
-    background: #ffffff !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    height: auto !important;
-    overflow: visible !important;
-    font-family: ${fontFamStr} !important;
-}
-
-/* The document sheet fills the page — @page handles all whitespace */
-.document-sheet,
-.cover-letter-sheet {
-    box-shadow: none !important;
-    border: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    /* Eliminate artificial height that creates blank trailing pages */
-    min-height: 0 !important;
-    height: auto !important;
-    overflow: visible !important;
-    font-family: ${fontFamStr} !important;
-}
-
-.document-sheet *,
-.cover-letter-sheet * {
-    font-family: ${fontFamStr} !important;
-}
-
-[contenteditable] {
-    outline: none !important;
-    background: transparent !important;
-}
-
-/* Section containers flow naturally across pages */
-.cv-section, .cv-column, .cv-left-col, .cv-right-col,
-.cv-body, .cv-exp-bullets, .cv-achievements-list {
-    break-inside: auto !important;
-    page-break-inside: auto !important;
-}
-
-/* Individual items must never be sliced across page boundaries */
-.cv-exp-bullet-row, .cv-exp-item, .cv-achievement-item,
-.cv-edu-item, .cv-skill-cat, .cv-ach-item, .cv-lang-item,
-.cv-cert-item, .cv-academic-item, .cv-contact-item-bullet,
-.contact-item, .cl-paragraph, .cl-recipient-box,
-.cl-signature-block, li {
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-}
-
-.cv-section-heading, .cv-section-header-row {
-    break-after: avoid !important;
-    page-break-after: avoid !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-}
-
-/* Strip all highlight colours */
-mark, .cv-match-highlight, .cv-edu-match, .cv-gap-highlight,
-.highlight-span, .ai-diff-ins, .ai-diff-del,
-.rewrite-highlight-flash, .tag-keyword-highlight, .keyword-matched {
-    background-color: transparent !important;
-    background: transparent !important;
-    color: inherit !important;
-    padding: 0 !important;
-    border: none !important;
-    box-shadow: none !important;
-    text-decoration: none !important;
-}
-
-/* Preserve avatar/initials badges */
-.cv-avatar-dark-circle, .cv-initials-badge,
-.cv-sidebar-circle-badge, .cv-avatar-col-tpl5,
-.cl-avatar-dark-circle, .cl-av-col {
-    display: flex !important;
-    visibility: visible !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-}
-</style>
-</head>
-<body class="${fontCls}" style="font-family: ${fontFamStr} !important;">
-${clone.outerHTML}
-</body>
-</html>`);
-            iDoc.close();
-
-            // Wait for iframe fonts and layout to be completely ready before triggering print
-            iframe.onload = async () => {
-                try {
-                    if (iframe.contentWindow && iframe.contentWindow.document && iframe.contentWindow.document.fonts) {
-                        try {
-                            await iframe.contentWindow.document.fonts.ready;
-                        } catch (fErr) {}
-                    }
-                } catch (e) {}
-
-                setTimeout(() => {
-                    try {
-                        iframe.contentWindow.focus();
-                        iframe.contentWindow.print();
-                    } catch (printErr) {
-                        console.error('Print trigger error:', printErr);
-                    } finally {
-                        setTimeout(() => {
-                            document.body.classList.remove('is-exporting-pdf');
-                            if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-                            exportPdfBtn.disabled = false;
-                            exportPdfBtn.innerHTML = origBtnHtml;
-                        }, 1500);
-                    }
-                }, 150);
+            // Production-ready html2pdf configuration with professional margins
+            const html2pdfOptions = {
+                margin: [15, 18, 15, 15],  // [top, right, bottom, left] 15-18mm margins — allows avatar badge to render without clipping
+                filename: pdfFilename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff'
+                },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4', compress: true },
+                pagebreak: {
+                    mode: 'css'
+                }
             };
-            // Return early — finally block below must NOT re-enable the button
-            // (iframe.onload handles cleanup above)
-            return;
+
+            // Trigger production PDF generation
+            if (window.html2pdf && typeof window.html2pdf === 'function') {
+                await window.html2pdf().set(html2pdfOptions).from(element).save();
+                showStudioToast(`Downloaded ${pdfFilename} successfully!`);
+            } else {
+                throw new Error('PDF library not available. Please refresh and try again.');
+            }
+
+            exportPdfBtn.disabled = false;
+            exportPdfBtn.innerHTML = origBtnHtml;
+            document.body.classList.remove('is-exporting-pdf');
+
         } catch (err) {
             console.error('PDF export error:', err);
-            showStudioToast(`PDF Export: ${err.message}`);
-        } finally {
+            showStudioToast(`PDF Export Error: ${err.message}`);
             document.body.classList.remove('is-exporting-pdf');
             exportPdfBtn.disabled = false;
             exportPdfBtn.innerHTML = origBtnHtml;
@@ -7094,18 +6958,22 @@ ${clone.outerHTML}
         if (expItems.length > 0) {
             const parsedExp = [];
             expItems.forEach(item => {
-                const titleElem = item.querySelector('.cv-exp-title') || item.querySelector('h4');
-                const compElem = item.querySelector('.cv-exp-company') || item.querySelector('.cv-company-name');
-                const dateElem = item.querySelector('.cv-meta-row span') || item.querySelector('.cv-exp-date-right');
+                const titleElem = item.querySelector('.cv-exp-role, .cv-exp-title, .cv-timeline-role-title, h4');
+                const compElem = item.querySelector('.cv-exp-company, .cv-company-name, .cv-timeline-org');
+                const dateElem = item.querySelector('.cv-exp-date-right, .cv-timeline-dates') ||
+                    item.querySelector('.cv-meta-row .meta-item:first-child span') ||
+                    item.querySelector('.cv-meta-row span:not(.cv-exp-role):not(.cv-exp-company)');
                 const bullets = Array.from(item.querySelectorAll('.cv-exp-bullets li'))
                     .map(row => (row.querySelector('.cv-exp-bullet') || row).textContent.trim())
                     .filter(Boolean);
                 if (titleElem || compElem) {
+                    const dateText = (dateElem?.textContent || '').trim().replace(/\s*[-–—]\s*$/, '');
+                    const dateRange = dateText.match(/^(.*?)\s+[-–—]\s+(.*?)$/);
                     parsedExp.push({
                         job_title: titleElem ? titleElem.textContent.trim() : "Role",
                         company: compElem ? compElem.textContent.trim() : "Company",
-                        start_date: dateElem ? dateElem.textContent.trim() : "",
-                        end_date: "",
+                        start_date: dateRange ? dateRange[1].trim() : dateText,
+                        end_date: dateRange ? dateRange[2].trim() : "",
                         location: "",
                         bullet_points: bullets
                     });

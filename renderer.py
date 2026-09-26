@@ -112,10 +112,11 @@ def build_ats_friendly_docx(
     doc = Document()
     clear_headers_and_footers(doc)
 
-    # Configure Margins (compact top margin, comfortable bottom margin)
-    top_margin_val = Inches(0.35)
+    # Configure Margins (production-ready professional spacing: 0.65 inches all sides)
+    # This aligns with industry standards for printed resumes, with extra right margin to prevent avatar clipping
+    top_margin_val = Inches(0.65)
     bottom_margin_val = Inches(0.65)
-    side_margin_val = Inches(0.55) if columns == 2 else Inches(0.60)
+    side_margin_val = Inches(0.65)  # Consistent margins to prevent edge element clipping
     for section in doc.sections:
         section.top_margin = top_margin_val
         section.bottom_margin = bottom_margin_val
@@ -138,12 +139,13 @@ def build_ats_friendly_docx(
     except Exception:
         pass
 
-    def apply_compact_para(p, space_before=1, space_after=1):
-        """Enforces line height = 1.0 (squeezed / compact)."""
+    def apply_compact_para(p, space_before=0, space_after=1):
+        """Applies ultra-compact professional paragraph spacing with single line height.
+        Default spacing: no space before, 1pt after for maximum density."""
         p.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
         p.paragraph_format.line_spacing = 1.0
-        p.paragraph_format.space_before = Pt(space_before)
-        p.paragraph_format.space_after = Pt(space_after)
+        p.paragraph_format.space_before = Pt(max(0, space_before))
+        p.paragraph_format.space_after = Pt(max(0, space_after))
 
     def add_markdown_runs_to_paragraph(paragraph, text: str, font_name: str, base_font_size=Pt(11), default_color=None):
         """
@@ -173,10 +175,11 @@ def build_ats_friendly_docx(
                 run.font.color.rgb = default_color
 
     def format_bullet_point(container, text: str, index: int = 1):
-        """Renders list items formatted with the chosen list style."""
+        """Renders list items formatted with the chosen list style.
+        Professional spacing: 0pt before, 2pt after for clean list appearance."""
         bp = container.add_paragraph()
         apply_compact_para(bp, space_before=0, space_after=1)
-        bp.paragraph_format.left_indent = Inches(0.16)
+        bp.paragraph_format.left_indent = Inches(0.20)  # Standard bullet indent
 
         prefix = "• "
         if list_style == "square":
@@ -220,7 +223,7 @@ def build_ats_friendly_docx(
         if contact_info.professional_title:
             sub_para = doc.add_paragraph()
             sub_para.alignment = WD_ALIGN_PARAGRAPH.CENTER if is_centered_hdr else WD_ALIGN_PARAGRAPH.LEFT
-            apply_compact_para(sub_para, space_before=0, space_after=2)
+            apply_compact_para(sub_para, space_before=0, space_after=1)
             sub_run = sub_para.add_run(sanitize_text(contact_info.professional_title))
             sub_run.bold = False if template_style == "template_4_banner" else True
             sub_run.font.size = Pt(10.5)
@@ -230,7 +233,7 @@ def build_ats_friendly_docx(
         # Contact Details Line
         contact_para = doc.add_paragraph()
         contact_para.alignment = WD_ALIGN_PARAGRAPH.CENTER if is_centered_hdr else WD_ALIGN_PARAGRAPH.LEFT
-        apply_compact_para(contact_para, space_before=0, space_after=6)
+        apply_compact_para(contact_para, space_before=0, space_after=1)
 
         details = [
             contact_info.phone,
@@ -334,8 +337,6 @@ def build_ats_friendly_docx(
             vr.font.size = Pt(8.0)
             vr.font.color.rgb = RGBColor(0x64, 0x74, 0x8b)
 
-        doc.add_paragraph()  # spacing divider
-
     # Dynamic Accent Color based on template selection or the user's theme token.
     is_ats_minimal = template_style in ("template_ats_minimal", "ats_minimal", "ats_single_column", "classic_single_column")
     is_blue_theme = "blue" in template_style or template_style == "template_1_blue"
@@ -370,7 +371,7 @@ def build_ats_friendly_docx(
         """Helper to create standardized compact section headings with subtle divider line or shaded banner."""
         if is_ats_minimal:
             h = container.add_paragraph()
-            apply_compact_para(h, space_before=7, space_after=2)
+            apply_compact_para(h, space_before=2, space_after=2)
             run = h.add_run(sanitize_text(text).upper())
             run.bold = True
             run.font.size = Pt(11.5)
@@ -399,7 +400,7 @@ def build_ats_friendly_docx(
             return tb
         elif is_lorna_template:
             h = container.add_paragraph()
-            apply_compact_para(h, space_before=6, space_after=2)
+            apply_compact_para(h, space_before=2, space_after=2)
             run = h.add_run(sanitize_text(text))
             run.bold = True
             run.font.size = Pt(12)
@@ -414,7 +415,7 @@ def build_ats_friendly_docx(
             return h
         elif is_aisha_template:
             h = container.add_paragraph()
-            apply_compact_para(h, space_before=6, space_after=2)
+            apply_compact_para(h, space_before=2, space_after=2)
             run = h.add_run(sanitize_text(text).upper())
             run.bold = True
             run.font.size = Pt(12)
@@ -423,7 +424,7 @@ def build_ats_friendly_docx(
             return h
         else:
             h = container.add_paragraph()
-            apply_compact_para(h, space_before=5, space_after=2)
+            apply_compact_para(h, space_before=1, space_after=2)
             run = h.add_run(sanitize_text(text).upper())
             run.bold = True
             run.font.size = Pt(11.5)
@@ -436,7 +437,7 @@ def build_ats_friendly_docx(
         if data.professional_summary:
             add_heading(container, "Summary")
             sp = container.add_paragraph(sanitize_text(data.professional_summary))
-            apply_compact_para(sp, space_before=1, space_after=4)
+            apply_compact_para(sp, space_before=0, space_after=1)
             for r in sp.runs:
                 r.font.name = font_name
                 r.font.size = Pt(11)
@@ -1462,8 +1463,6 @@ def build_cover_letter_docx(
         c_run.font.name = font_name
         c_run.font.size = Pt(9.5)
         c_run.font.color.rgb = RGBColor(0x64, 0x74, 0x8b)
-
-        doc.add_paragraph()  # Spacing
 
     elif template_style == "cl_template_3_navy":
         # TEMPLATE 3: Corporate Left Navy Header

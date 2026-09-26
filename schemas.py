@@ -24,7 +24,7 @@ class ContactInformation(BaseModel):
 class WorkExperience(BaseModel):
     """Historical employment record extracted from source resume."""
     company: str = Field(description="Name of the employer")
-    job_title: str = Field(description="Official job title held")
+    job_title: str = Field(description="Official position/job title held; normalize source fields such as title, role, role_title, or position_title here")
     start_date: str = Field(description="Start date (e.g., 'Jan 2021' or '2021')")
     end_date: str = Field(description="End date or 'Present'")
     location: str = Field(default="", description="Job location")
@@ -163,7 +163,7 @@ class OptimizedBullet(BaseModel):
 class OptimizedWorkExperience(BaseModel):
     """Tailored work experience item with reasoning-optimized bullet points."""
     company: str = Field(description="Name of the employer")
-    job_title: str = Field(description="Job title held")
+    job_title: str = Field(description="Actual job title held, not the employer, department, or target job title")
     start_date: str = Field(description="Start date")
     end_date: str = Field(description="End date")
     location: str = Field(default="", description="Job location")

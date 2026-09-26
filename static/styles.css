@@ -1936,18 +1936,164 @@ mark {
 
 /* Print Cleanliness Guaranteed */
 @media print {
-    .ai-diff-del {
+    /* Production-ready print styling for seamless PDF/Word exports */
+    
+    /* Hide all UI elements */
+    .no-print, .ai-diff-del, .ai-suggestion-popover, .para-diff-action-bar,
+    .btn-bullet-del, .btn-add-bullet, .btn-add-achievement,
+    .exp-bullet-controls, .ach-controls, .section-actions, .btn-sec-drag,
+    .section-insert-divider, .cv-gap-badge-wrap, .avatar-upload-overlay,
+    .avatar-reset-btn, .btn-edu-del, .btn-edu-sub-del, .btn-academic-del,
+    .btn-lang-del, .btn-skill-cat-del, .btn-skill-tag-del, .btn-add-skill-pill,
+    .edu-item-controls, .academic-controls, .lang-controls, .skills-controls,
+    .btn-col-add-sec, .section-ai-corner-badge, .floating-ai-toolbar {
         display: none !important;
     }
+    
+    /* Clean text styling */
     .ai-diff-ins {
         background-color: transparent !important;
         color: inherit !important;
         font-weight: inherit !important;
         padding: 0 !important;
     }
-    .ai-suggestion-popover,
-    .para-diff-action-bar {
-        display: none !important;
+    
+    /* Strip all highlights */
+    mark, .cv-match-highlight, .cv-edu-match, .cv-gap-highlight,
+    .highlight-span, .rewrite-highlight-flash, .tag-keyword-highlight,
+    .keyword-matched {
+        background-color: transparent !important;
+        color: inherit !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+    
+    /* Page break optimization for all document sheets */
+    .document-sheet, .cover-letter-sheet {
+        box-shadow: none !important;
+        border: none !important;
+        width: 100% !important;
+        overflow: visible !important;
+    }
+    
+    /* Prevent splitting within items */
+    .cv-exp-item, .cv-exp-bullet-row, .cv-achievement-item,
+    .cv-edu-item, .cv-skill-cat, .cv-ach-item, .cv-lang-item,
+    .cv-cert-item, .cv-academic-item, .cv-contact-item-bullet,
+    .contact-item, .cl-paragraph, .cl-recipient-box,
+    .cl-signature-block, li {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+    
+    /* Keep summary and first content item together */
+    .cv-section:first-of-type {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+    
+    /* Reduce orphaning of section headers but allow natural page breaks */
+    .cv-section-heading {
+        break-after: avoid !important;
+        page-break-after: avoid !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        orphans: 3 !important;
+        widows: 3 !important;
+        margin-top: 0 !important;
+        margin-bottom: 1pt !important;
+    }
+    
+    /* Prevent splitting section headings from content */
+    .cv-section-header-row {
+        break-after: avoid !important;
+        page-break-after: avoid !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+    }
+    
+    /* Allow sections to flow naturally - DON'T force them to new pages */
+    .cv-section {
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+        margin-top: 1pt !important;
+        margin-bottom: 0 !important;
+    }
+    
+    /* Ensure color preservation */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+    
+    /* Preserve avatar badges without clipping */
+    .cv-avatar-dark-circle, .cv-initials-badge,
+    .cv-sidebar-circle-badge, .cv-avatar-col-tpl5,
+    .cl-avatar-dark-circle, .cl-av-col {
+        display: flex !important;
+        visibility: visible !important;
+        overflow: visible !important;
+    }
+    
+    /* Ensure document wrapper doesn't clip edge elements */
+    .document-sheet, .cv-header-tpl2, .cv-header-tpl5, .cv-header-tpl6 {
+        overflow: visible !important;
+    }
+    
+    /* Aggressively compact header and contact sections to prevent blank pages */
+    .cv-name, .cv-title, .cv-header-name, .cv-name-title-group {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+        line-height: 1.1 !important;
+    }
+    
+    .cv-contact-row, .cv-contact-section, .contact-para, .contact-row {
+        margin-bottom: 1pt !important;
+        margin-top: 0 !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+    }
+    
+    .cv-contact-item-bullet, .cv-contact-item {
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+    }
+    
+    /* Tighten skill tags and badge spacing */
+    .cv-skill-tag, .cv-skill-pill, .skill-tag, .skill-badge,
+    .badge, .tag-pill {
+        margin: 0 !important;
+        padding: 2pt 4pt !important;
+        line-height: 1 !important;
+    }
+    
+    /* Handle column layouts properly for print - allow natural flow */
+    .cv-column, .cv-left-col, .cv-right-col {
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+        column-break-inside: auto !important;
+        gap: 4pt !important;
+    }
+    
+    /* Ensure body content respects natural flow */
+    .cv-body, .cv-exp-bullets, .cv-achievements-list {
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+    }
+    
+    /* Tighten bullet spacing */
+    .cv-exp-bullet, .cv-edu-bullet, li {
+        margin-top: 0 !important;
+        margin-bottom: 1pt !important;
+    }
+    
+    /* Clean whitespace */
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
     }
 }
 

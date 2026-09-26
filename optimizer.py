@@ -70,6 +70,34 @@ def strip_markdown_symbols(text: str) -> str:
 
 def smart_heuristic_parse_experience(exp_lines, default_location=""):
     work_exps = []
+
+    role_terms = re.compile(
+        r'\b(?:engineer|developer|programmer|manager|director|analyst|consultant|specialist|'
+        r'administrator|architect|designer|officer|assistant|coordinator|lead|head|president|'
+        r'intern|lecturer|tutor|technician|scientist|executive|accountant|nurse|teacher|professor|'
+        r'associate|representative|advisor|adviser|strategist|product|customer success|sales|'
+        r'marketing|researcher|support|operator|lecturer|instructor|founder|owner|principal|'
+        r'supervisor|consultant|technologist|developer|specialist|(?:vice\s+)?president)\b',
+        re.IGNORECASE
+    )
+    company_terms = re.compile(
+        r'\b(?:incorporated|inc\.?|llc|ltd\.?|limited|corp\.?|corporation|gmbh|plc|'
+        r'company|co\.?|group|university|college|hospital|agency|foundation|association)\b',
+        re.IGNORECASE
+    )
+
+    def split_header_parts(header):
+        return [part.strip(" ,|•-–—") for part in re.split(r'\s*[|•]\s*|\s+[-–—]\s+|\s+at\s+', header, flags=re.IGNORECASE) if part.strip(" ,|•-–—")]
+
+    def role_score(value):
+        score = len(role_terms.findall(value)) * 3
+        if re.search(r'\b(senior|junior|chief|principal|staff|associate|assistant| II| III| IV)\b', value, re.IGNORECASE):
+            score += 1
+        if company_terms.search(value):
+            score -= 4
+        if ',' in value:
+            score -= 1
+        return score
     
     date_pat = re.compile(
         r'(\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|\d{1,2}[/-]\d{2,4}|\d{4})\b(?:\s*[-–—/]\s*|\s+to\s+)(?:(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|\d{1,2}[/-]\d{2,4}|\d{4})\b|Present|Current|Now))',
@@ -139,36 +167,34 @@ def smart_heuristic_parse_experience(exp_lines, default_location=""):
             else:
                 remaining_headers.append(hl)
 
-        if len(remaining_headers) == 1:
-            single_line = remaining_headers[0]
-            parts = [p.strip() for p in re.split(r'[|•]|\s+[-–—]\s+', single_line) if p.strip()]
-            if len(parts) >= 2:
-                role = parts[0]
-                company = parts[1]
-                if len(parts) >= 3: loc = parts[2]
-            else:
-                role, company = single_line, "Company"
-        elif len(remaining_headers) >= 2:
-            first_line = remaining_headers[0]
-            sec_line = remaining_headers[1]
-            first_parts = [p.strip() for p in re.split(r'[|•]|\s+[-–—]\s+', first_line) if p.strip()]
-            if len(first_parts) >= 2:
-                role = first_parts[0]
-                company = first_parts[1]
-                if len(first_parts) >= 3: loc = first_parts[2]
-                elif sec_line: loc = sec_line
-            else:
-                role = first_line
-                c_parts = [p.strip() for p in re.split(r'[|•]|\s+[-–—]\s+', sec_line) if p.strip()]
-                if len(c_parts) >= 2:
-                    company, loc = c_parts[0], c_parts[1]
-                else:
-                    company = sec_line
+        header_parts = []
+        for header in remaining_headers:
+            header_parts.extend(split_header_parts(header))
 
-        if not role and not company:
-            role, company = "Professional Role", "Organization"
-        elif not company: company = "Organization"
-        elif not role: role = "Professional Role"
+        location_parts = [part for part in header_parts if ',' in part and not company_terms.search(part)]
+        if location_parts:
+            loc = location_parts[-1]
+
+        role_candidates = [part for part in header_parts if role_score(part) > 0 and part not in location_parts]
+        if role_candidates:
+            role = max(role_candidates, key=role_score)
+
+        company_candidates = [
+            part for part in header_parts
+            if part != role and part not in location_parts and role_score(part) <= max(role_score(role), 0)
+        ]
+        if company_candidates:
+            marked_companies = [part for part in company_candidates if company_terms.search(part)]
+            company = (marked_companies or company_candidates)[0]
+
+        if not role and remaining_headers:
+            # Preserve a useful source heading rather than replacing it with a generic role label.
+            first_non_location = next((part for part in header_parts if part not in location_parts), remaining_headers[0])
+            role = first_non_location
+        if not company:
+            company = "Organization"
+
+        role = role or ""
 
         work_exps.append(WorkExperience(
             company=company, job_title=role, start_date=start_date, end_date=end_date, location=loc,
@@ -1033,6 +1059,7 @@ def parse_resume_to_schema(raw_resume_text: str, model: str = DEFAULT_MODEL) -> 
             "1. contact: Candidate contact details, full name, title, email, phone, location, links.\n"
             "2. summary: Candidate profile/summary.\n"
             "3. work_experience: ALL past work experience entries with company, title, dates, location, bullets.\n"
+            "For every work entry, identify the actual job title even when the company is listed first, the title is on a neighboring header line, or the source labels it Position, Role, Position Title, or Role Title. Map that value to job_title; do not substitute the employer, department, or responsibility text for the job title.\n"
             "4. education: ALL educational qualifications, degrees, institutions, graduation dates, honors.\n"
             "5. skills & skill_categories: Hard and soft skills categorized.\n"
             "6. certifications: ALL certifications, licenses, and professional training.\n"

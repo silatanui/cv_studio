@@ -27,9 +27,65 @@ from extractor import extract_text_from_file
 from renderer import build_ats_friendly_docx
 from verification import verify_factual_integrity, calculate_keyword_coverage
 from pipeline import run_cv_optimization_pipeline
+from optimizer import smart_heuristic_parse_experience
+from app import _normalize_work_experience_entry
 
 
 class TestCVOptimizer(unittest.TestCase):
+
+    def test_work_experience_aliases_normalize_to_canonical_fields(self):
+        normalized = _normalize_work_experience_entry({
+            "job_title": None,
+            "position_title": "Platform Engineer",
+            "company": None,
+            "employer": "Acme Systems Ltd",
+        })
+
+        self.assertEqual(normalized["job_title"], "Platform Engineer")
+        self.assertEqual(normalized["company"], "Acme Systems Ltd")
+
+        canonical = _normalize_work_experience_entry({
+            "job_title": "Staff Engineer",
+            "company": "Example Corp",
+            "role": "Ignored alias",
+        })
+        self.assertEqual(canonical["job_title"], "Staff Engineer")
+        self.assertEqual(canonical["company"], "Example Corp")
+
+    def test_experience_role_extracted_from_common_header_orders(self):
+        cases = [
+            (
+                ["Senior Software Engineer | Acme GmbH | Berlin, Germany", "2022 - Present", "- Built systems"],
+                "Senior Software Engineer", "Acme GmbH"
+            ),
+            (
+                ["Acme GmbH | Senior Software Engineer | Berlin, Germany", "2022 - Present", "- Built systems"],
+                "Senior Software Engineer", "Acme GmbH"
+            ),
+            (
+                ["Senior Software Engineer", "Acme GmbH - Berlin, Germany", "2022 - Present", "- Built systems"],
+                "Senior Software Engineer", "Acme GmbH"
+            ),
+            (
+                ["Customer Success Specialist | Enterprise Application & Customer Support", "Transcosmos (Fossil Group) - Debrecen, Hungary", "Oct 2025 - Feb 2026", "- Resolved customer issues"],
+                "Customer Success Specialist", "Transcosmos (Fossil Group)"
+            ),
+            (
+                ["Platform Engineer at Acme Systems Ltd", "2021 - Present", "- Built systems"],
+                "Platform Engineer", "Acme Systems Ltd"
+            ),
+            (
+                ["Acme Systems Ltd", "Cloud Platform Architect", "Remote", "2021 - Present", "- Designed platform architecture"],
+                "Cloud Platform Architect", "Acme Systems Ltd"
+            ),
+        ]
+
+        for lines, expected_role, expected_company in cases:
+            with self.subTest(lines=lines):
+                experiences = smart_heuristic_parse_experience(lines)
+                self.assertEqual(len(experiences), 1)
+                self.assertEqual(experiences[0].job_title, expected_role)
+                self.assertEqual(experiences[0].company, expected_company)
 
     def test_sanitizer(self):
         """Test replacement of non-standard typography and quotes."""

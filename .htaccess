@@ -6,6 +6,11 @@ PassengerStartupFile passenger_wsgi.py
 # Optional: Rewrite rules for static files and media compression
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    # Uncomment lines below to enforce maintenance directly via Apache if Python app is paused:
+    # RewriteCond %{REQUEST_URI} !^/static/
+    # RewriteCond %{REQUEST_URI} !^/maintenance.html$
+    # RewriteRule ^.*$ /maintenance.html [R=503,L]
+
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
 </IfModule>

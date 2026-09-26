@@ -51,6 +51,23 @@ load_dotenv(BASE_DIR / ".env")
 
 UPLOADS_DIR = BASE_DIR / "uploads"
 OUTPUTS_DIR = BASE_DIR / "outputs"
+
+
+def _normalize_work_experience_entry(entry: dict) -> dict:
+    normalized = dict(entry)
+    if not normalized.get("job_title"):
+        normalized["job_title"] = next((
+            str(normalized.get(key) or "").strip()
+            for key in ("position_title", "role_title", "position", "title", "role")
+            if str(normalized.get(key) or "").strip()
+        ), "")
+    if not normalized.get("company"):
+        normalized["company"] = next((
+            str(normalized.get(key) or "").strip()
+            for key in ("company_name", "employer", "organization")
+            if str(normalized.get(key) or "").strip()
+        ), "Company")
+    return normalized
 SAMPLE_DATA_DIR = BASE_DIR / "sample_data"
 
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
@@ -67,20 +84,70 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 
+def is_maintenance_mode() -> bool:
+    """Checks whether the application is running in scheduled maintenance mode."""
+    env_mode = os.environ.get("MAINTENANCE_MODE", "").strip().lower()
+    if env_mode in ("true", "1", "yes"):
+        return True
+    if env_mode in ("false", "0", "no"):
+        return False
+
+    flag_path = BASE_DIR / "maintenance.flag"
+    dot_flag = BASE_DIR / ".maintenance"
+    for p in (flag_path, dot_flag):
+        if p.exists():
+            try:
+                content = p.read_text(encoding="utf-8").strip()
+                if content.startswith("{"):
+                    data = json.loads(content)
+                    return bool(data.get("enabled", True))
+                return True
+            except Exception:
+                return True
+    return False
+
+
+@app.get("/maintenance", response_class=HTMLResponse)
+@app.get("/cv_studio/maintenance", response_class=HTMLResponse)
+@app.get("/cv_optimizer/maintenance", response_class=HTMLResponse)
+async def serve_maintenance(request: Request):
+    """Directly renders the maintenance status page."""
+    return templates.TemplateResponse(request=request, name="maintenance.html")
+
+
 @app.get("/", response_class=HTMLResponse)
 @app.get("/cv_studio", response_class=HTMLResponse)
 @app.get("/cv_studio/", response_class=HTMLResponse)
+@app.get("/cv_optimizer", response_class=HTMLResponse)
+@app.get("/cv_optimizer/", response_class=HTMLResponse)
 async def serve_index(request: Request):
-    """Renders the main CV optimization dashboard."""
+    """Renders the main CV optimization dashboard or maintenance page if active."""
+    bypass = request.query_params.get("bypass") in ("1", "true") or request.query_params.get("preview") in ("1", "true")
+    if is_maintenance_mode() and not bypass:
+        response = templates.TemplateResponse(request=request, name="maintenance.html", status_code=503)
+        response.headers["Retry-After"] = "300"
+        return response
     return templates.TemplateResponse(request=request, name="index.html")
 
 
 @app.get("/api/health")
+@app.get("/cv_studio/api/health")
+@app.get("/cv_optimizer/api/health")
 async def health_check():
     """Service health and environment status."""
+    if is_maintenance_mode():
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "maintenance",
+                "message": "CV Studio is currently undergoing scheduled maintenance. We will be back as soon as possible. Thank you for trusting our services.",
+                "has_openai_key": bool(os.environ.get("OPENAI_API_KEY")),
+                "model": DEFAULT_MODEL
+            }
+        )
     return {
         "status": "healthy",
-        "has_openai_key": True,
+        "has_openai_key": bool(os.environ.get("OPENAI_API_KEY")),
         "model": DEFAULT_MODEL
     }
 
@@ -1020,11 +1087,7 @@ async def export_custom_docx_endpoint(payload: Dict[str, Any] = Body(...)):
             norm_exp_list = []
             for exp in tailored_data["work_experience"]:
                 if isinstance(exp, dict):
-                    exp_dict = dict(exp)
-                    if "company" not in exp_dict and "company_name" in exp_dict:
-                        exp_dict["company"] = exp_dict["company_name"]
-                    elif "company" not in exp_dict:
-                        exp_dict["company"] = "Company"
+                    exp_dict = _normalize_work_experience_entry(exp)
                     
                     bullets = exp_dict.get("bullet_points", [])
                     norm_bullets = []

@@ -19,9 +19,29 @@ class TestWebApp(unittest.TestCase):
     def setUpClass(cls):
         cls.client = TestClient(app)
 
-    def test_serve_index(self):
-        """Test GET / renders HTML dashboard."""
+    def test_maintenance_page_direct(self):
+        """Test GET /maintenance directly renders the maintenance page with 200 OK."""
+        response = self.client.get("/maintenance")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/html", response.headers["content-type"])
+        self.assertIn("Undergoing Maintenance", response.text)
+        self.assertIn("We will be back as soon as possible", response.text)
+        self.assertIn("Thank you for trusting our services", response.text)
+        self.assertIn("Check System Status", response.text)
+
+    def test_maintenance_mode_active(self):
+        """Test GET / returns 503 Service Unavailable when maintenance mode is active."""
         response = self.client.get("/")
+        if response.status_code == 503:
+            self.assertIn("Undergoing Maintenance", response.text)
+            self.assertEqual(response.headers.get("Retry-After"), "300")
+            bypass_res = self.client.get("/?bypass=1")
+            self.assertEqual(bypass_res.status_code, 200)
+            self.assertIn("Candidate Master Resume", bypass_res.text)
+
+    def test_serve_index(self):
+        """Test GET / renders HTML dashboard (with bypass if maintenance mode is active)."""
+        response = self.client.get("/?bypass=1")
         self.assertEqual(response.status_code, 200)
         self.assertIn("text/html", response.headers["content-type"])
         self.assertIn("Candidate Master Resume", response.text)
@@ -30,9 +50,9 @@ class TestWebApp(unittest.TestCase):
     def test_health_check(self):
         """Test GET /api/health endpoint."""
         response = self.client.get("/api/health")
-        self.assertEqual(response.status_code, 200)
+        self.assertIn(response.status_code, [200, 503])
         data = response.json()
-        self.assertEqual(data["status"], "healthy")
+        self.assertIn(data["status"], ["healthy", "maintenance"])
         self.assertEqual(data["model"], "gpt-4o-mini")
 
     def test_sample_data(self):

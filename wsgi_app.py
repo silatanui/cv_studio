@@ -15,9 +15,8 @@ import hashlib
 import subprocess
 from pathlib import Path
 from typing import Optional, Dict, Any, List
-
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify, render_template, send_from_directory, abort
+from flask import Flask, request, jsonify, render_template, send_from_directory, abort, make_response
 
 from pipeline import run_cv_optimization_pipeline
 from extractor import extract_text_from_file
@@ -39,7 +38,11 @@ from section_engine import (
     calculate_cv_quality_score,
 )
 from mock_stress_data import get_29_section_stress_cv_payload
-from app import build_tailored_cover_letter_data, generate_heuristic_assistant_reply
+from app import (
+    _normalize_work_experience_entry,
+    build_tailored_cover_letter_data,
+    generate_heuristic_assistant_reply,
+)
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
@@ -85,13 +88,49 @@ def serve_cv_optimizer_static(filename):
     return send_from_directory(str(BASE_DIR / "static"), filename)
 
 
+def is_maintenance_mode() -> bool:
+    """Checks whether the application is running in scheduled maintenance mode."""
+    env_mode = os.environ.get("MAINTENANCE_MODE", "").strip().lower()
+    if env_mode in ("true", "1", "yes"):
+        return True
+    if env_mode in ("false", "0", "no"):
+        return False
+
+    flag_path = BASE_DIR / "maintenance.flag"
+    dot_flag = BASE_DIR / ".maintenance"
+    for p in (flag_path, dot_flag):
+        if p.exists():
+            try:
+                content = p.read_text(encoding="utf-8").strip()
+                if content.startswith("{"):
+                    data = json.loads(content)
+                    return bool(data.get("enabled", True))
+                return True
+            except Exception:
+                return True
+    return False
+
+
+@app.route("/maintenance", methods=["GET"])
+@app.route("/cv_studio/maintenance", methods=["GET"])
+@app.route("/cv_optimizer/maintenance", methods=["GET"])
+def serve_maintenance():
+    """Directly renders the maintenance status page."""
+    return render_template("maintenance.html")
+
+
 @app.route("/", methods=["GET"])
 @app.route("/cv_studio/", methods=["GET"])
 @app.route("/cv_studio", methods=["GET"])
 @app.route("/cv_optimizer/", methods=["GET"])
 @app.route("/cv_optimizer", methods=["GET"])
 def serve_index():
-    """Renders the main CV optimization studio dashboard."""
+    """Renders the main CV optimization studio dashboard or maintenance page if active."""
+    bypass = request.args.get("bypass") in ("1", "true") or request.args.get("preview") in ("1", "true")
+    if is_maintenance_mode() and not bypass:
+        resp = make_response(render_template("maintenance.html"), 503)
+        resp.headers["Retry-After"] = "300"
+        return resp
     return render_template("index.html")
 
 
@@ -100,6 +139,14 @@ def serve_index():
 @app.route("/cv_optimizer/api/health", methods=["GET"])
 def health_check():
     """Service health and environment status."""
+    if is_maintenance_mode():
+        return jsonify({
+            "status": "maintenance",
+            "message": "CV Studio is currently undergoing scheduled maintenance. We will be back as soon as possible. Thank you for trusting our services.",
+            "has_openai_key": bool(os.environ.get("OPENAI_API_KEY")),
+            "model": DEFAULT_MODEL,
+            "engine": "wsgi-native"
+        }), 503
     return jsonify({
         "status": "healthy",
         "has_openai_key": bool(os.environ.get("OPENAI_API_KEY")),
@@ -587,11 +634,7 @@ def export_custom_docx_endpoint():
             norm_exp_list = []
             for exp in tailored_data["work_experience"]:
                 if isinstance(exp, dict):
-                    exp_dict = dict(exp)
-                    if "company" not in exp_dict and "company_name" in exp_dict:
-                        exp_dict["company"] = exp_dict["company_name"]
-                    elif "company" not in exp_dict:
-                        exp_dict["company"] = "Company"
+                    exp_dict = _normalize_work_experience_entry(exp)
                     
                     bullets = exp_dict.get("bullet_points", [])
                     norm_bullets = []
