@@ -147,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const colBtn2 = document.getElementById('colBtn2');
     const fontSelect = document.getElementById('fontSelect');
     const fontSizeSelect = document.getElementById('fontSizeSelect');
-    const lineHeightSelect = document.getElementById('lineHeightSelect');
     const btnAlignLeft = document.getElementById('btnAlignLeft');
     const btnAlignCenter = document.getElementById('btnAlignCenter');
     const btnAlignRight = document.getElementById('btnAlignRight');
@@ -155,11 +154,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnFormatBold = document.getElementById('btnFormatBold');
     const btnFormatItalic = document.getElementById('btnFormatItalic');
     const btnFormatUnderline = document.getElementById('btnFormatUnderline');
+    const textTransformSelect = document.getElementById('textTransformSelect');
     const btnFormatBullet = document.getElementById('btnFormatBullet');
     const btnFormatNumbered = document.getElementById('btnFormatNumbered');
     const textColorPicker = document.getElementById('textColorPicker');
     const headingColorPicker = document.getElementById('headingColorPicker');
     const accentThemeSelect = document.getElementById('accentThemeSelect');
+    const accentThemeSwatches = document.getElementById('accentThemeSwatches');
+    const addThemeColorPicker = document.getElementById('addThemeColorPicker');
 
     // Add Section Dropdown Elements
     const addSectionDropdownBtn = document.getElementById('addSectionDropdownBtn');
@@ -429,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFile = null;
     let activeTab = 'upload';
     let currentTemplate = templateSelect ? templateSelect.value : 'template_2_teal';
-    let currentAccent = headingColorPicker ? headingColorPicker.value : '#009688';
+    let currentAccent = headingColorPicker ? headingColorPicker.value : '#ff0ad3';
     let currentClTemplate = 'cl_template_1_centered';
     let currentColumns = 2;
     let currentFont = 'Outfit';
@@ -1318,16 +1320,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function selectTemplate(tplName) {
         if (!tplName) return;
+        let renderData = lastOptimizationResult;
+        if (renderData && typeof collectLiveDocumentState === 'function') {
+            const liveState = collectLiveDocumentState();
+            renderData = { ...renderData, tailored_cv: liveState.tailored_cv };
+            lastOptimizationResult = renderData;
+            window.lastOptimizationResult = renderData;
+        }
+        setVisualReviewState(false, false);
         currentTemplate = tplName;
         if (templateSelect) templateSelect.value = tplName;
         updateModalCardSelection();
         applyTemplateStyles();
-        if (lastOptimizationResult) {
-            renderDocument(lastOptimizationResult);
+        if (renderData) {
+            renderDocument(renderData);
         }
         syncCandidateToAllHeaders();
         renderAllAvatarBadges();
         renderSectionInsertDividers();
+        setVisualReviewState(false, false);
         showStudioToast(`${getTemplateDisplayName(tplName)} applied`);
     }
 
@@ -1657,6 +1668,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resumePreviewCanvas.style.setProperty('--cv-accent', currentAccent);
         resumePreviewCanvas.style.setProperty('font-family', fontFamStr, 'important');
         rearrangeSectionsForTemplate(currentTemplate);
+        applyAccentToPreviews(currentAccent);
     }
 
     function applyAccentTheme(color) {
@@ -1665,12 +1677,106 @@ document.addEventListener('DOMContentLoaded', () => {
         if (headingColorPicker) headingColorPicker.value = color;
         applyAccentToPreviews(color);
         document.querySelectorAll('.tb-heading-bar').forEach(bar => { bar.style.backgroundColor = color; });
+        updateAccentSwatchSelection(color);
         showStudioToast('Accent theme updated');
     }
 
+    function updateAccentSwatchSelection(color) {
+        if (!accentThemeSwatches) return;
+        accentThemeSwatches.querySelectorAll('.cv-theme-swatch').forEach(swatch => {
+            const selected = swatch.dataset.color.toLowerCase() === color.toLowerCase();
+            swatch.classList.toggle('active', selected);
+            swatch.setAttribute('aria-pressed', String(selected));
+        });
+    }
+
+    let accentSwatchUsage = {};
+    const accentSwatchStorageKey = 'cvStudioAccentUsage';
+
+    function recordAccentSwatchUse(color, name) {
+        if (!accentThemeSwatches || !color) return;
+        const normalizedColor = color.toLowerCase();
+        let swatch = Array.from(accentThemeSwatches.querySelectorAll('.cv-theme-swatch'))
+            .find(item => item.dataset.color.toLowerCase() === normalizedColor);
+        if (!swatch) {
+            swatch = document.createElement('button');
+            swatch.type = 'button';
+            swatch.className = 'cv-theme-swatch';
+            swatch.dataset.color = normalizedColor;
+            swatch.dataset.name = name || normalizedColor.toUpperCase();
+            swatch.title = swatch.dataset.name;
+            swatch.setAttribute('aria-label', swatch.dataset.name);
+            swatch.setAttribute('aria-pressed', 'false');
+            swatch.style.backgroundColor = normalizedColor;
+            accentThemeSwatches.appendChild(swatch);
+        }
+        accentSwatchUsage[normalizedColor] = (accentSwatchUsage[normalizedColor] || 0) + 1;
+        try {
+            localStorage.setItem(accentSwatchStorageKey, JSON.stringify(accentSwatchUsage));
+        } catch (_) {
+            // Keep swatch ordering functional when storage is unavailable.
+        }
+        reorderAccentSwatches();
+        updateAccentSwatchSelection(normalizedColor);
+    }
+
+    function reorderAccentSwatches() {
+        if (!accentThemeSwatches) return;
+        const swatches = Array.from(accentThemeSwatches.querySelectorAll('.cv-theme-swatch'));
+        swatches.sort((a, b) => (accentSwatchUsage[b.dataset.color.toLowerCase()] || 0) - (accentSwatchUsage[a.dataset.color.toLowerCase()] || 0));
+        swatches.forEach(swatch => accentThemeSwatches.appendChild(swatch));
+    }
+
+    function setupAccentSwatches() {
+        if (!accentThemeSwatches) return;
+        try {
+            accentSwatchUsage = JSON.parse(localStorage.getItem(accentSwatchStorageKey) || '{}');
+        } catch (_) {
+            accentSwatchUsage = {};
+        }
+        Object.keys(accentSwatchUsage).forEach(color => {
+            const exists = Array.from(accentThemeSwatches.querySelectorAll('.cv-theme-swatch'))
+                .some(swatch => swatch.dataset.color.toLowerCase() === color.toLowerCase());
+            if (!exists && /^#[0-9a-f]{6}$/i.test(color)) {
+                const swatch = document.createElement('button');
+                swatch.type = 'button';
+                swatch.className = 'cv-theme-swatch';
+                swatch.dataset.color = color.toLowerCase();
+                swatch.dataset.name = color.toUpperCase();
+                swatch.title = swatch.dataset.name;
+                swatch.setAttribute('aria-label', swatch.dataset.name);
+                swatch.setAttribute('aria-pressed', 'false');
+                swatch.style.backgroundColor = color;
+                accentThemeSwatches.appendChild(swatch);
+            }
+        });
+        reorderAccentSwatches();
+        updateAccentSwatchSelection(currentAccent);
+        accentThemeSwatches.addEventListener('click', event => {
+            const swatch = event.target.closest('.cv-theme-swatch');
+            if (!swatch) return;
+            const color = swatch.dataset.color;
+            recordAccentSwatchUse(color, swatch.dataset.name);
+            applyAccentTheme(color);
+        });
+        if (addThemeColorPicker) {
+            addThemeColorPicker.value = currentAccent;
+            addThemeColorPicker.addEventListener('change', () => {
+                const color = addThemeColorPicker.value;
+                recordAccentSwatchUse(color, color.toUpperCase());
+                applyAccentTheme(color);
+            });
+        }
+    }
+
     function applyAccentToPreviews(color) {
+        const isTemplate6 = resumePreviewCanvas?.matches('.template-template_6_aisha, .template-template_6_teal_sidebar');
+        const isTemplate15 = resumePreviewCanvas?.classList.contains('template-template_15_editorial_sidebar');
+        const resumeAccent = color;
         [resumePreviewCanvas, coverLetterSheet].forEach(canvas => {
-            if (canvas) canvas.style.setProperty('--cv-accent', color);
+            if (!canvas) return;
+            const canvasAccent = canvas === resumePreviewCanvas ? resumeAccent : color;
+            canvas.style.setProperty('--cv-accent', canvasAccent);
         });
         if (!resumePreviewCanvas) return;
 
@@ -1678,9 +1784,13 @@ document.addEventListener('DOMContentLoaded', () => {
             '.cv-title-teal', '.cv-title-tpl5', '.cv-title-tpl6',
             '.cv-section-heading', '.cv-exp-company', '.cv-edu-inst',
             '.cv-skill-cat-name', '.cv-header-rule', '.cv-header-tpl2',
-            '.cv-header-tpl5', '.cv-header-tpl6', '.cv-section-header-row'
+            '.cv-header-tpl5', '.cv-header-tpl6', '.cv-section-header-row',
+            '.cv-tpl7-eyebrow', '.cv-tpl8-eyebrow', '.cv-tpl9-diamond',
+            '.cv-tpl10-section-title', '.cv-tpl11-section-title',
+            '.cv-section-accent'
         ];
         const darkSurfaceSelector = [
+            '.template-template_3_navy .cv-left-col',
             '.template-template_6_aisha .cv-left-col',
             '.template-template_6_teal_sidebar .cv-left-col',
             '.template-template_8_emerald .cv-header-tpl8',
@@ -1690,27 +1800,53 @@ document.addEventListener('DOMContentLoaded', () => {
             resumePreviewCanvas.querySelectorAll(selector).forEach(element => {
                 if (element.closest(darkSurfaceSelector)) {
                     element.style.removeProperty('color');
+                    if (selector.includes('section-header-row')) element.style.removeProperty('border-color');
                     return;
                 }
                 if (selector.includes('header-tpl') || selector.includes('section-header-row')) {
-                    element.style.setProperty('border-color', color, 'important');
+                    element.style.setProperty('border-color', resumeAccent, 'important');
                 } else {
-                    element.style.setProperty('color', color, 'important');
+                    element.style.setProperty('color', resumeAccent, 'important');
                 }
             });
         });
 
-        const fillSelectors = [
-            '.template-template_3_navy .cv-left-col',
-            '.template-template_6_aisha .cv-left-col',
-            '.template-template_6_teal_sidebar .cv-left-col',
-            '.cv-sidebar-circle-badge', '.cv-avatar-dark-circle'
-        ];
-        fillSelectors.forEach(selector => {
-            resumePreviewCanvas.querySelectorAll(selector).forEach(element => {
-                element.style.setProperty('background-color', color, 'important');
-            });
+        resumePreviewCanvas.querySelectorAll('.avatar-circle-container, .cv-avatar-dark-circle, .cv-sidebar-circle-badge, .cv-initials-badge').forEach(avatar => {
+            if (avatar.classList.contains('has-custom-photo')) return;
+            avatar.style.setProperty('background-color', resumeAccent, 'important');
+            avatar.style.setProperty('color', '#ffffff', 'important');
+            avatar.style.setProperty('border-color', resumeAccent, 'important');
         });
+
+        const themedSidebar = isTemplate6 || isTemplate15
+            ? resumePreviewCanvas.querySelector('.cv-left-col')
+            : null;
+        if (themedSidebar) {
+            const hex = color.replace('#', '');
+            const channels = hex.length === 6
+                ? [0, 2, 4].map(offset => parseInt(hex.slice(offset, offset + 2), 16) / 255)
+                : [0.15, 0.47, 0.45];
+            const luminance = channels.map(channel => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4)
+                .reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0);
+            const sidebarText = luminance > 0.18 ? '#132126' : '#ffffff';
+            const sidebarMuted = luminance > 0.18 ? '#34464b' : '#e5eeec';
+            const sidebarAccent = luminance > 0.18 ? '#26363b' : '#b9e2dd';
+            const variablePrefix = isTemplate15 ? '--tpl15-sidebar-' : '--tpl6-sidebar-';
+            resumePreviewCanvas.style.setProperty(`${variablePrefix}background`, color);
+            resumePreviewCanvas.style.setProperty(`${variablePrefix}text`, sidebarText);
+            resumePreviewCanvas.style.setProperty(`${variablePrefix}muted`, sidebarMuted);
+            resumePreviewCanvas.style.setProperty(`${variablePrefix}accent`, sidebarAccent);
+            themedSidebar.querySelectorAll('.cv-sidebar-circle-badge, .avatar-circle-container, .cv-initials-badge').forEach(avatar => {
+                if (avatar.classList.contains('has-custom-photo')) return;
+                avatar.style.setProperty('color', sidebarText, 'important');
+                avatar.style.setProperty('border-color', sidebarText, 'important');
+            });
+        } else {
+            ['--tpl6-sidebar-background', '--tpl6-sidebar-text', '--tpl6-sidebar-muted', '--tpl6-sidebar-accent',
+                '--tpl15-sidebar-background', '--tpl15-sidebar-text', '--tpl15-sidebar-muted', '--tpl15-sidebar-accent']
+                .forEach(property => resumePreviewCanvas.style.removeProperty(property));
+        }
+
     }
 
     function applyFontStyles() {
@@ -2108,6 +2244,24 @@ document.addEventListener('DOMContentLoaded', () => {
             // 5. Languages in Left Column
             if (secLanguages && !secLanguages.classList.contains('hidden')) cvLeftCol.appendChild(secLanguages);
 
+            const sidebarSectionIcons = {
+                secSkills: '<path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2L12 3Z"/><path d="m19 14 .9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14Z"/>',
+                secEducation: '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21V5.5Z"/><path d="M4 17a2.5 2.5 0 0 1 2.5-2.5H20"/>',
+                secAchievements: '<path d="M8 21h8m-4-4v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4v2a4 4 0 0 0 4 4m9-6h3v2a4 4 0 0 1-4 4"/>',
+                secAwards: '<path d="m12 3 2.2 4.5 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7L12 3Z"/>',
+                secLanguages: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18m0-18a14 14 0 0 0 0 18"/>'
+            };
+            Object.entries(sidebarSectionIcons).forEach(([sectionId, iconPath]) => {
+                const section = document.getElementById(sectionId);
+                const heading = section?.querySelector('.cv-section-heading');
+                if (!heading || heading.parentElement.querySelector('.cv-tpl6-icon-badge')) return;
+                const badge = document.createElement('span');
+                badge.className = 'cv-tpl6-icon-badge no-print';
+                badge.setAttribute('aria-hidden', 'true');
+                badge.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${iconPath}</svg>`;
+                heading.parentElement.insertBefore(badge, heading);
+            });
+
             // Right Main Column
             cvRightCol.innerHTML = '';
             if (secSummary && cvSummary && cvSummary.textContent.trim()) {
@@ -2228,7 +2382,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (secSkills) cvLeftCol.appendChild(secSkills);
                 if (secLanguages && !secLanguages.classList.contains('hidden')) cvLeftCol.appendChild(secLanguages);
+                if (tpl === 'template_15_editorial_sidebar' && secAchievements && !secAchievements.classList.contains('hidden')) cvLeftCol.appendChild(secAchievements);
                 if (secAwards && !secAwards.classList.contains('hidden')) cvLeftCol.appendChild(secAwards);
+
+                if (tpl === 'template_15_editorial_sidebar') {
+                    const editorialIcons = {
+                        secContactSidebar: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
+                        secSkills: '<path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2L12 3Z"/>',
+                        secLanguages: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18m0-18a14 14 0 0 0 0 18"/>',
+                        secAchievements: '<path d="M8 21h8m-4-4v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4v2a4 4 0 0 0 4 4m9-6h3v2a4 4 0 0 1-4 4"/>',
+                        secAwards: '<path d="m12 3 2.2 4.5 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7L12 3Z"/>'
+                    };
+                    Object.entries(editorialIcons).forEach(([sectionId, iconPath]) => {
+                        const section = document.getElementById(sectionId);
+                        const heading = section?.querySelector('.cv-section-heading');
+                        if (!heading || heading.parentElement.querySelector('.cv-tpl15-icon-badge')) return;
+                        const badge = document.createElement('span');
+                        badge.className = 'cv-tpl15-icon-badge no-print';
+                        badge.setAttribute('aria-hidden', 'true');
+                        badge.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${iconPath}</svg>`;
+                        heading.parentElement.insertBefore(badge, heading);
+                    });
+                }
 
                 cvRightCol.innerHTML = '';
 
@@ -2266,6 +2441,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (secReferees && !secReferees.classList.contains('hidden')) cvRightCol.appendChild(secReferees);
             }
         }
+        const canonicalSections = [
+            secSummary, secExperience, secEducation, secSkills, secAchievements,
+            secAcademicWork, secAwards, secLanguages, secReferees,
+            secCertifications, secPublications, secVolunteer, secMemberships,
+            secPhilosophy, secMetricsTiles, secTechMatrix, secOpenSource,
+            secBoardRoles, secExecCompetencies, secCareerTimeline,
+            secVolunteerLeadership, secCaseStudies, secMediaRecognition
+        ];
+        canonicalSections.forEach(section => {
+            if (!section || section.classList.contains('hidden')) return;
+            if (cvLeftCol.contains(section) || cvRightCol.contains(section)) return;
+            cvRightCol.appendChild(section);
+        });
+
         distributeCustomSections(tpl, savedCustomSecs);
         updateAllSectionColumnButtons();
         renderSectionInsertDividers();
@@ -2320,21 +2509,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Line Spacing / Height Adjustment
-        if (lineHeightSelect) {
-            lineHeightSelect.addEventListener('change', () => {
-                const lhVal = lineHeightSelect.value;
-                const canvas = (currentDocMode === 'cl') ? coverLetterSheet : resumePreviewCanvas;
-                if (canvas) {
-                    canvas.style.lineHeight = lhVal;
-                    canvas.querySelectorAll('.cv-text, .cv-exp-bullet, .cv-exp-item, .cv-edu-item, .cv-academic-item, .cl-paragraph').forEach(el => {
-                        el.style.lineHeight = lhVal;
-                    });
-                }
-                showStudioToast(`Line height set to ${lhVal}`);
-            });
-        }
-
         // Text Alignment Group
         const alignActions = [
             { btn: btnAlignLeft, align: 'left', cmd: 'justifyLeft' },
@@ -2373,6 +2547,48 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         });
+
+        if (textTransformSelect) {
+            textTransformSelect.addEventListener('change', () => {
+                const transform = textTransformSelect.value;
+                const transformText = value => {
+                    if (transform === 'uppercase') return value.toLocaleUpperCase();
+                    if (transform === 'lowercase') return value.toLocaleLowerCase();
+                    if (transform === 'capitalize') return value.replace(/\b\w/g, character => character.toLocaleUpperCase());
+                    return value;
+                };
+                const transformTextNodes = root => {
+                    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+                    const nodes = [];
+                    let node;
+                    while ((node = walker.nextNode())) nodes.push(node);
+                    nodes.forEach(textNode => { textNode.nodeValue = transformText(textNode.nodeValue); });
+                };
+                const selection = window.getSelection();
+                if (selection && !selection.isCollapsed && selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    const commonNode = range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+                        ? range.commonAncestorContainer
+                        : range.commonAncestorContainer.parentElement;
+                    if (!commonNode?.closest('[contenteditable="true"]')) return;
+                    const wrapper = document.createElement('span');
+                    wrapper.appendChild(range.extractContents());
+                    transformTextNodes(wrapper);
+                    range.insertNode(wrapper);
+                    selection.removeAllRanges();
+                    const restored = document.createRange();
+                    restored.selectNodeContents(wrapper);
+                    selection.addRange(restored);
+                } else {
+                    const canvas = currentDocMode === 'cl' ? coverLetterSheet : resumePreviewCanvas;
+                    const focusedBlock = document.activeElement?.closest('[contenteditable="true"]');
+                    const selectedBlock = selection?.anchorNode?.parentElement?.closest('[contenteditable="true"]');
+                    const target = focusedBlock || selectedBlock || (currentDocMode === 'cl' ? clBody : currentActiveSection);
+                    if (target && canvas?.contains(target)) transformTextNodes(target);
+                }
+                showStudioToast(transform === 'none' ? 'Text case reset' : `Text set to ${transform}`);
+            });
+        }
 
         if (listStyleSelect) {
             listStyleSelect.addEventListener('change', () => {
@@ -2475,12 +2691,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const color = e.target.value;
                 currentAccent = color;
                 applyAccentToPreviews(color);
-                if (accentThemeSelect) accentThemeSelect.value = 'custom';
+                updateAccentSwatchSelection(color);
                 document.querySelectorAll('.cv-section-heading, .cv-title-teal, .cv-title-tpl5, .cv-title-tpl6, .cl-header-navy-bar').forEach(h => {
                     h.style.color = color;
                     h.style.borderColor = color;
                 });
                 showStudioToast('Heading color updated');
+            });
+            headingColorPicker.addEventListener('change', () => {
+                recordAccentSwatchUse(headingColorPicker.value, headingColorPicker.value.toUpperCase());
             });
         }
         if (accentThemeSelect) {
@@ -2489,6 +2708,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 else if (headingColorPicker) headingColorPicker.click();
             });
         }
+        setupAccentSwatches();
     }
 
     setupFormattingControls();
@@ -2794,7 +3014,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function addSkillCategoryItem(catName = 'Technical Domain', initialSkills = ['Python', 'FastAPI', 'Docker']) {
+    function addSkillCategoryItem(catName = 'New Skill Group', initialSkills = []) {
         if (!cvSkills) return;
         const catDiv = document.createElement('div');
         catDiv.className = 'cv-skill-cat';
@@ -2823,6 +3043,15 @@ document.addEventListener('DOMContentLoaded', () => {
             cvSkills.appendChild(catDiv);
         }
         if (secSkills) secSkills.classList.remove('hidden');
+        const nameField = catDiv.querySelector('.cv-skill-cat-name');
+        if (nameField) {
+            nameField.focus();
+            const range = document.createRange();
+            range.selectNodeContents(nameField);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
         showStudioToast('Added new skill group');
     }
 
@@ -2830,6 +3059,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!catElement) return;
         const wrap = catElement.querySelector('.skill-pill-tags-wrap');
         if (!wrap) return;
+        if (Array.from(wrap.querySelectorAll('.skill-pill-text')).some(skill => skill.textContent.trim().toLowerCase() === skillName.trim().toLowerCase())) {
+            showStudioToast(`${skillName} is already in this skill group`);
+            return;
+        }
         const tag = document.createElement('span');
         tag.className = 'skill-pill-tag';
         tag.innerHTML = `
@@ -2852,6 +3085,16 @@ document.addEventListener('DOMContentLoaded', () => {
             sel.addRange(range);
         }
         showStudioToast('Added skill');
+    }
+
+    if (secSkills) {
+        secSkills.addEventListener('click', event => {
+            const button = event.target.closest('.btn-add-skill-cat');
+            if (!button) return;
+            event.preventDefault();
+            event.stopPropagation();
+            addSkillCategoryItem();
+        });
     }
 
     function addLanguageItem(name = 'Language Name', level = 'Proficient') {
@@ -2905,6 +3148,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (secAcademicWork) secAcademicWork.classList.remove('hidden');
         showStudioToast('Added new project / academic work');
     }
+    function renderEditableList(items, label) {
+        const entries = (items || []).map(item => {
+            if (typeof item === 'string') return item.trim();
+            if (!item || typeof item !== 'object') return '';
+            const title = item.name || item.title || item.certification || item.publication_title || item.degree || '';
+            const issuer = item.issuer || item.organization || item.publisher || item.institution || '';
+            const date = item.year || item.date || item.date_range || '';
+            return [title, issuer, date].filter(Boolean).join(' | ').trim();
+        }).filter(Boolean);
+        return `<ul class="cv-editable-list" contenteditable="true" aria-label="${escapeAttr(label)}">${entries.map(entry => `<li>${formatMarkdownInline(entry)}</li>`).join('')}</ul>`;
+    }
 
     // Delegated click listener for Section Sub-Items, Column Add, and Popover dismissal
     document.addEventListener('click', (e) => {
@@ -2912,7 +3166,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.closest('.btn-add-ach')) addAchievementItem();
         if (e.target.closest('.btn-rephrase-ach') || e.target.id === 'btnRephraseAchievements') rephraseKeyAchievements();
         if (e.target.closest('.btn-rephrase-summary') || e.target.id === 'btnRephraseSummary') rephraseSummary();
-        if (e.target.closest('.btn-add-skill-cat')) addSkillCategoryItem();
+        const addSkillGroupBtn = e.target.closest('.btn-add-skill-cat');
+        if (addSkillGroupBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            addSkillCategoryItem();
+            return;
+        }
         if (e.target.closest('.btn-add-edu')) addEducationItem();
         if (e.target.closest('.btn-add-lang')) addLanguageItem();
         if (e.target.closest('.btn-add-academic')) addAcademicWorkItem();
@@ -3327,6 +3587,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
+
     }
 
     function createSectionInsertDivider(col, targetSec, position) {
@@ -4283,13 +4544,7 @@ document.addEventListener('DOMContentLoaded', () => {
             : (parsed_resume.certifications || []);
         if (certs.length > 0 && cvCertifications) {
             if (secCertifications) secCertifications.classList.remove('hidden');
-            cvCertifications.innerHTML = '';
-            certs.forEach(cert => {
-                const cDiv = document.createElement('div');
-                cDiv.className = 'cv-ach-item';
-                cDiv.innerHTML = `<span class="bullet-dot">•</span><span class="cv-ach-desc" contenteditable="true">${formatMarkdownInline(cert)}</span>`;
-                cvCertifications.appendChild(cDiv);
-            });
+            cvCertifications.innerHTML = renderEditableList(certs, 'Certifications and training');
         } else if (secCertifications) {
             secCertifications.classList.add('hidden');
         }
@@ -4300,13 +4555,7 @@ document.addEventListener('DOMContentLoaded', () => {
             : (parsed_resume.publications || []);
         if (pubs.length > 0 && cvPublications) {
             if (secPublications) secPublications.classList.remove('hidden');
-            cvPublications.innerHTML = '';
-            pubs.forEach(pub => {
-                const pDiv = document.createElement('div');
-                pDiv.className = 'cv-ach-item';
-                pDiv.innerHTML = `<span class="bullet-dot">•</span><span class="cv-ach-desc" contenteditable="true">${formatMarkdownInline(pub)}</span>`;
-                cvPublications.appendChild(pDiv);
-            });
+            cvPublications.innerHTML = renderEditableList(pubs, 'Publications');
         } else if (secPublications) {
             secPublications.classList.add('hidden');
         }
@@ -4317,13 +4566,7 @@ document.addEventListener('DOMContentLoaded', () => {
             : (parsed_resume.volunteer_experience || []);
         if (vol.length > 0 && cvVolunteer) {
             if (secVolunteer) secVolunteer.classList.remove('hidden');
-            cvVolunteer.innerHTML = '';
-            vol.forEach(v => {
-                const vDiv = document.createElement('div');
-                vDiv.className = 'cv-ach-item';
-                vDiv.innerHTML = `<span class="bullet-dot">•</span><span class="cv-ach-desc" contenteditable="true">${formatMarkdownInline(v)}</span>`;
-                cvVolunteer.appendChild(vDiv);
-            });
+            cvVolunteer.innerHTML = renderEditableList(vol, 'Volunteer experience');
         } else if (secVolunteer) {
             secVolunteer.classList.add('hidden');
         }
@@ -4334,19 +4577,17 @@ document.addEventListener('DOMContentLoaded', () => {
             : (parsed_resume.professional_memberships || []);
         if (mems.length > 0 && cvMemberships) {
             if (secMemberships) secMemberships.classList.remove('hidden');
-            cvMemberships.innerHTML = '';
-            mems.forEach(m => {
-                const mDiv = document.createElement('div');
-                mDiv.className = 'cv-ach-item';
-                mDiv.innerHTML = `<span class="bullet-dot">•</span><span class="cv-ach-desc" contenteditable="true">${formatMarkdownInline(m)}</span>`;
-                cvMemberships.appendChild(mDiv);
-            });
+            cvMemberships.innerHTML = renderEditableList(mems, 'Professional memberships');
         } else if (secMemberships) {
             secMemberships.classList.add('hidden');
         }
 
-    function renderCustomSectionContent(title, items, content) {
+    function renderCustomSectionContent(title, items, content, contentFormat = 'list') {
         const titleLower = (title || '').toLowerCase();
+
+        if (contentFormat === 'paragraph' && content) {
+            return `<p class="cv-text cv-custom-para" contenteditable="true">${formatMarkdownInline(content)}</p>`;
+        }
 
         // 1. Structured SectionItem objects (from SectionModel.items)
         if (items && items.length > 0 && typeof items[0] === 'object' && items[0] !== null) {
@@ -4400,20 +4641,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 3. Structured string items with bold lead-ins (Patents, Grants, Presentations, Conferences, Awards, Licenses)
         if (items && items.length > 0) {
-            return `<div class="cv-custom-list">` + items.map(it => {
-                if (typeof it !== 'string') return '';
-                const trimmed = it.trim();
-                // Check for colon-separated structured item (e.g. "US Patent 11,482,901: Accelerated Sequence...")
-                if (trimmed.includes(':') && !trimmed.startsWith('http') && !trimmed.startsWith('**')) {
-                    const colonIdx = trimmed.indexOf(':');
-                    const lead = trimmed.substring(0, colonIdx).trim();
-                    const rest = trimmed.substring(colonIdx + 1).trim();
-                    if (lead.length < 50 && rest.length > 0) {
-                        return `<div class="cv-custom-item cv-bullet-item"><span class="bullet-dot">•</span><div class="cv-custom-item-text" contenteditable="true"><strong class="cv-custom-lead">${escapeHtml(lead)}:</strong> ${formatMarkdownInline(rest)}</div></div>`;
-                    }
-                }
-                return `<div class="cv-custom-item cv-bullet-item"><span class="bullet-dot">•</span><div class="cv-custom-item-text" contenteditable="true">${formatMarkdownInline(trimmed)}</div></div>`;
-            }).join('') + `</div>`;
+            return `<ul class="cv-editable-list cv-custom-editable-list" contenteditable="true" aria-label="${escapeAttr(title)}">${items.filter(item => typeof item === 'string').map(item => `<li>${formatMarkdownInline(item.trim())}</li>`).join('')}</ul>`;
         }
 
         // 4. Narrative paragraph fallback
@@ -4423,6 +4651,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return '';
     }
+    window.renderCustomSectionContent = renderCustomSectionContent;
 
         // Dynamic & Canonical Sections Engine (Zero Data Loss)
         let customSecs = [];
@@ -4454,7 +4683,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (customSecs.length === 0 && legacyCustomSecs && legacyCustomSecs.length > 0) {
-            customSecs = legacyCustomSecs;
+            const hasCanonicalCertifications = (tailored_cv.certifications && tailored_cv.certifications.length > 0) ||
+                (parsed_resume.certifications && parsed_resume.certifications.length > 0);
+            customSecs = legacyCustomSecs.filter(section => {
+                const title = String(section.title || '').toLowerCase();
+                return !(hasCanonicalCertifications && /certif|credential|training/.test(title));
+            });
         }
 
         // Clear any old dynamic custom sections from columns
@@ -4473,7 +4707,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const items = cs.items || [];
                 const content = cs.content || '';
 
-                let innerBody = renderCustomSectionContent(title, items, content);
+                let innerBody = renderCustomSectionContent(title, items, content, cs.content_format || 'list');
 
                 secElem.innerHTML = `
                     <div class="cv-section-header-row">
@@ -4515,7 +4749,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ========================================================
     // AI MATCH DETECTOR, WORD DIFF & VISUAL REVIEW ENGINE
     // ========================================================
-    function setVisualReviewState(active) {
+    function setVisualReviewState(active, notify = true) {
         isVisualReviewActive = active;
         if (resumePreviewCanvas) {
             if (active) {
@@ -4530,6 +4764,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 toggleVisualReviewBtn.classList.add('is-hidden-mode');
             }
+            toggleVisualReviewBtn.setAttribute('aria-pressed', String(active));
         }
         if (topReviewBtnLabel) {
             topReviewBtnLabel.textContent = active ? 'Hide Match Review' : 'Show Match Review';
@@ -4549,7 +4784,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!active) {
             hideAiSuggestionPopover();
         }
-        showStudioToast(active ? 'AI Match Review: Active (Diffs & Suggestions Visible)' : 'AI Match Review: Hidden (Clean CV View)');
+        if (notify) showStudioToast(active ? 'AI Match Review: Active (Diffs & Suggestions Visible)' : 'AI Match Review: Hidden (Clean CV View)');
     }
 
     if (toggleVisualReviewBtn) {
@@ -4891,6 +5126,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const addGapSkillBtn = e.target.closest('.btn-add-gap-skill');
+            if (addGapSkillBtn) {
+                e.stopPropagation();
+                e.preventDefault();
+                const row = addGapSkillBtn.closest('.cv-gap-suggestion');
+                const groups = Array.from(cvSkills.querySelectorAll('.cv-skill-cat'));
+                const selectedGroup = groups[Number(row?.querySelector('.cv-gap-group-select')?.value || 0)];
+                if (selectedGroup) {
+                    addSkillPillToGroup(selectedGroup, addGapSkillBtn.dataset.skill || '');
+                    row.remove();
+                    if (!cvSkills.querySelector('.cv-gap-suggestion')) cvSkills.querySelector('.cv-gap-badge-wrap')?.remove();
+                }
+                return;
+            }
+
             // 2. Add academic detail bullet
             const addAcadBulletBtn = e.target.closest('.btn-add-academic-bullet');
             if (addAcadBulletBtn) {
@@ -5171,19 +5421,41 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Flag missing gaps at the bottom of the skills section or summary if gaps exist
-        if (missingKws && missingKws.length > 0) {
-            const gapBadges = missingKws.slice(0, 4).map(kw => 
-                `<span class="cv-gap-badge" title="Requirement in Job Description not found in CV">[Gap: Missing ${escapeHtml(kw)}]</span>`
-            ).join(' ');
-
-            if (cvSkills && cvSkills.parentNode) {
-                const gapWrap = document.createElement('div');
-                gapWrap.className = 'cv-gap-badge-wrap no-print';
-                gapWrap.style.marginTop = '6px';
-                gapWrap.innerHTML = gapBadges;
-                cvSkills.parentNode.appendChild(gapWrap);
+        if (missingKws && missingKws.length > 0 && cvSkills) {
+            let skillGroups = Array.from(cvSkills.querySelectorAll('.cv-skill-cat'));
+            if (skillGroups.length === 0) {
+                addSkillCategoryItem('Relevant Skills', []);
+                skillGroups = Array.from(cvSkills.querySelectorAll('.cv-skill-cat'));
             }
+            if (secSkills) secSkills.classList.remove('hidden');
+            const gapWrap = document.createElement('div');
+            gapWrap.className = 'cv-gap-badge-wrap cv-gap-suggestions no-print';
+            gapWrap.innerHTML = '<span class="cv-gap-suggestions-title">Skills to consider adding</span>';
+
+            missingKws.slice(0, 8).forEach(keyword => {
+                const row = document.createElement('div');
+                row.className = 'cv-gap-suggestion';
+                const label = document.createElement('span');
+                label.className = 'cv-gap-keyword';
+                label.textContent = keyword;
+                const groupSelect = document.createElement('select');
+                groupSelect.className = 'cv-gap-group-select';
+                groupSelect.setAttribute('aria-label', `Choose a skill group for ${keyword}`);
+                skillGroups.forEach((group, index) => {
+                    const option = document.createElement('option');
+                    option.value = String(index);
+                    option.textContent = group.querySelector('.cv-skill-cat-name')?.textContent.trim() || `Skill Group ${index + 1}`;
+                    groupSelect.appendChild(option);
+                });
+                const addButton = document.createElement('button');
+                addButton.type = 'button';
+                addButton.className = 'btn-add-gap-skill';
+                addButton.dataset.skill = keyword;
+                addButton.textContent = 'Add';
+                row.append(label, groupSelect, addButton);
+                gapWrap.appendChild(row);
+            });
+            cvSkills.appendChild(gapWrap);
         }
 
         // Apply active visibility state
@@ -5368,24 +5640,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (clBody) {
             clBody.innerHTML = '';
-            (clData.paragraphs || []).forEach(para => {
-                const p = document.createElement('p');
-                p.className = 'cl-paragraph cl-body-para';
-                p.setAttribute('contenteditable', 'true');
-                p.innerHTML = formatMarkdownInline(para);
-                p.addEventListener('click', (e) => {
-                    if (currentDocMode === 'cl') {
-                        activeClParagraph = p;
-                        showClRephraseBar(p);
-                    }
-                });
-                p.addEventListener('focus', () => {
-                    if (currentDocMode === 'cl') {
-                        activeClParagraph = p;
-                    }
-                });
-                clBody.appendChild(p);
-            });
+            clBody.setAttribute('contenteditable', 'true');
+            clBody.setAttribute('aria-label', 'Cover letter body');
+            clBody.innerHTML = (clData.paragraphs || [])
+                .map(para => `<p class="cl-paragraph cl-body-para">${formatMarkdownInline(para)}</p>`)
+                .join('');
+            clBody.onclick = () => {
+                if (currentDocMode === 'cl') {
+                    activeClParagraph = clBody;
+                    showClRephraseBar(clBody);
+                }
+            };
+            clBody.onfocusin = () => {
+                if (currentDocMode === 'cl') activeClParagraph = clBody;
+            };
 
             // Update word count badge & page coverage indicator
             const wordCount = (clData.paragraphs || []).reduce((acc, p) => acc + p.trim().split(/\s+/).filter(Boolean).length, 0);
@@ -5406,6 +5674,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         applyFontStyles();
     }
+    window.renderCoverLetter = renderCoverLetter;
 
     // ========================================================
     // COVER LETTER PARAGRAPH REPHRASER ENGINE
@@ -5530,11 +5799,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // 2. Clicking any cover letter paragraph: activate and show rephrase options bar
-            const para = e.target.closest('.cl-paragraph');
-            if (para && currentDocMode === 'cl' && !e.target.closest('.para-diff-action-bar')) {
-                activeClParagraph = para;
-                showClRephraseBar(para);
+            // Keep cover-letter rephrase actions attached to the unified body editor.
+            if (clBody && clBody.contains(e.target) && currentDocMode === 'cl' && !e.target.closest('.para-diff-action-bar')) {
+                activeClParagraph = clBody;
+                showClRephraseBar(clBody);
                 return;
             }
 
@@ -5546,53 +5814,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ========================================================
-    // CONTEXT-AWARE DYNAMIC REFEREES ENGINE
+    // REFEREE CONTACT CARD EDITOR
     // ========================================================
-    function getContextualRefereeCards() {
-        const experiences = (currentOptimizedData && currentOptimizedData.tailored_cv && currentOptimizedData.tailored_cv.work_experience) ||
-            (currentParsedResume && currentParsedResume.work_experience) || [];
-        
-        const companies = [];
-        experiences.forEach(exp => {
-            const comp = typeof exp === 'object' ? (exp.company || exp.employer) : '';
-            if (comp && !companies.includes(comp)) {
-                companies.push(comp);
-            }
-        });
-
-        if (companies.length > 0) {
-            const cards = [
-                {
-                    name: "Professional Reference",
-                    role: `Department Head / Direct Supervisor • ${companies[0]}`,
-                    email: `manager@${companies[0].toLowerCase().replace(/[^a-z0-9]/g, '') || 'company'}.com`,
-                    phone: "+1 (555) 012-3456",
-                    relation: "Former Direct Manager / Supervisor"
-                }
-            ];
-            if (companies.length > 1) {
-                cards.push({
-                    name: "Professional Reference",
-                    role: `Senior Colleague / Tech Lead • ${companies[1]}`,
-                    email: `lead@${companies[1].toLowerCase().replace(/[^a-z0-9]/g, '') || 'company'}.com`,
-                    phone: "+1 (555) 019-8765",
-                    relation: "Senior Technical Peer & Collaborator"
-                });
-            }
-            return cards;
-        }
-
-        return [
-            {
-                name: "Professional Reference",
-                role: "Senior Director • Previous Organization",
-                email: "reference.contact@company.com",
-                phone: "+1 (555) 000-0000",
-                relation: "Professional & Character Reference"
-            }
-        ];
-    }
-
     function parseRefereesFromText(text) {
         if (!text) return [];
         const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
@@ -5605,7 +5828,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (emailMatch || phoneMatch) {
                 if (!currentCard) {
-                    currentCard = { name: "Professional Referee", role: "Reference", email: "", phone: "", relation: "Professional Contact" };
+                    currentCard = { name: "", role: "", email: "", phone: "", relation: "" };
                     cards.push(currentCard);
                 }
                 if (emailMatch) currentCard.email = emailMatch[0];
@@ -5616,10 +5839,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!currentCard || (currentCard.name && currentCard.role !== 'Reference' && (currentCard.email || currentCard.phone))) {
                 currentCard = {
                     name: line.replace(/^[-•*]\s*/, ''),
-                    role: "Title • Organization",
-                    email: "contact@company.com",
-                    phone: "+1 (555) 000-0000",
-                    relation: "Professional Reference"
+                    role: "",
+                    email: "",
+                    phone: "",
+                    relation: ""
                 };
                 cards.push(currentCard);
             } else if (currentCard && currentCard.role === 'Reference') {
@@ -5630,38 +5853,47 @@ document.addEventListener('DOMContentLoaded', () => {
         return cards;
     }
 
+    function createRefereeCard(ref = {}) {
+        const card = document.createElement('div');
+        card.className = 'cv-referee-card';
+        card.innerHTML = `
+            <div class="cv-referee-card-header">
+                <div class="cv-referee-name" contenteditable="true" data-placeholder="Referee name">${escapeHtml(ref.name || '')}</div>
+                <button type="button" class="btn-referee-del no-print" title="Remove referee card" aria-label="Remove referee card">×</button>
+            </div>
+            <div class="referee-field">
+                <span class="ref-field-label">Title / organization</span>
+                <div class="cv-referee-role" contenteditable="true" data-placeholder="For example, Senior Engineer at Acme">${escapeHtml(ref.role || '')}</div>
+            </div>
+            <div class="cv-referee-contacts">
+                <div class="referee-field"><span class="ref-field-label">Email</span><span class="ref-contact-pill" contenteditable="true" data-placeholder="name@example.com">${escapeHtml(ref.email || '')}</span></div>
+                <div class="referee-field"><span class="ref-field-label">Phone</span><span class="ref-contact-pill" contenteditable="true" data-placeholder="Phone number">${escapeHtml(ref.phone || '')}</span></div>
+            </div>
+            <div class="referee-field">
+                <span class="ref-field-label">Relationship</span>
+                <div class="cv-referee-rel" contenteditable="true" data-placeholder="For example, former manager">${escapeHtml(ref.relation || '')}</div>
+            </div>
+        `;
+        card.querySelector('.btn-referee-del').addEventListener('click', event => {
+            event.stopPropagation();
+            card.remove();
+            if (cvRefereesGrid.children.length === 0) renderRefereeCards([]);
+        });
+        return card;
+    }
+
     function renderRefereeCards(refList) {
         if (!cvRefereesGrid) return;
         cvRefereesGrid.innerHTML = '';
-        const list = (refList && refList.length > 0) ? refList : getContextualRefereeCards();
-
-        list.forEach((ref) => {
-            const card = document.createElement('div');
-            card.className = 'cv-referee-card';
-            card.innerHTML = `
-                <div class="cv-referee-card-header">
-                    <div class="cv-referee-name" contenteditable="true">${escapeHtml(ref.name || 'Referee Name')}</div>
-                    <button type="button" class="btn-referee-del no-print" title="Remove Referee">×</button>
-                </div>
-                <div class="cv-referee-role" contenteditable="true">${escapeHtml(ref.role || 'Title • Company')}</div>
-                <div class="cv-referee-contacts">
-                    <span class="ref-contact-pill" contenteditable="true">Email: ${escapeHtml(ref.email || 'email@company.com')}</span>
-                    <span style="color:#cbd5e1;font-size:0.75rem;">•</span>
-                    <span class="ref-contact-pill" contenteditable="true">Phone: ${escapeHtml(ref.phone || '+1 (555) 000-0000')}</span>
-                </div>
-                <div class="cv-referee-rel" contenteditable="true">${escapeHtml(ref.relation || 'Professional Reference')}</div>
-            `;
-
-            card.querySelector('.btn-referee-del').addEventListener('click', (e) => {
-                e.stopPropagation();
-                card.remove();
-                if (cvRefereesGrid.children.length === 0) {
-                    toggleRefereesMode('statement');
-                }
-            });
-
-            cvRefereesGrid.appendChild(card);
-        });
+        const list = Array.isArray(refList) ? refList : [];
+        if (list.length === 0) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'cv-referees-empty no-print';
+            emptyState.textContent = 'No referee contacts added. Add someone who can speak about your work.';
+            cvRefereesGrid.appendChild(emptyState);
+            return;
+        }
+        list.forEach(ref => cvRefereesGrid.appendChild(createRefereeCard(ref)));
     }
 
     function toggleRefereesMode(targetMode) {
@@ -5676,49 +5908,18 @@ document.addEventListener('DOMContentLoaded', () => {
             stmtCard.classList.add('hidden');
             cvRefereesGrid.classList.remove('hidden');
             if (btnToggleRefStatement) btnToggleRefStatement.textContent = 'Statement Mode';
-            if (cvRefereesGrid.children.length === 0) {
-                renderRefereeCards(getContextualRefereeCards());
-            }
+            if (cvRefereesGrid.children.length === 0) renderRefereeCards([]);
         }
     }
 
     if (btnAddRefereeCard) {
         btnAddRefereeCard.addEventListener('click', () => {
             toggleRefereesMode('cards');
-            const sampleContextRefs = getContextualRefereeCards();
-            const newRef = sampleContextRefs[0] || {
-                name: "Referee Name",
-                role: "Senior Director • Organization Name",
-                email: "referee.contact@company.com",
-                phone: "+1 (555) 000-0000",
-                relation: "Professional Reference"
-            };
-            const card = document.createElement('div');
-            card.className = 'cv-referee-card';
-            card.innerHTML = `
-                <div class="cv-referee-card-header">
-                    <div class="cv-referee-name" contenteditable="true">${escapeHtml(newRef.name)}</div>
-                    <button type="button" class="btn-referee-del no-print" title="Remove Referee">×</button>
-                </div>
-                <div class="cv-referee-role" contenteditable="true">${escapeHtml(newRef.role)}</div>
-                <div class="cv-referee-contacts">
-                    <span class="ref-contact-pill" contenteditable="true">Email: ${escapeHtml(newRef.email)}</span>
-                    <span style="color:#cbd5e1;font-size:0.75rem;">•</span>
-                    <span class="ref-contact-pill" contenteditable="true">Phone: ${escapeHtml(newRef.phone)}</span>
-                </div>
-                <div class="cv-referee-rel" contenteditable="true">${escapeHtml(newRef.relation)}</div>
-            `;
-
-            card.querySelector('.btn-referee-del').addEventListener('click', (e) => {
-                e.stopPropagation();
-                card.remove();
-                if (cvRefereesGrid.children.length === 0) {
-                    toggleRefereesMode('statement');
-                }
-            });
-
+            cvRefereesGrid.querySelector('.cv-referees-empty')?.remove();
+            const card = createRefereeCard();
             cvRefereesGrid.appendChild(card);
-            showStudioToast('Added new contextual referee contact card.');
+            card.querySelector('.cv-referee-name')?.focus();
+            showStudioToast('Added a blank referee card. Enter their real contact details.');
         });
     }
 
@@ -6293,7 +6494,7 @@ ${languages.join(', ') || 'None listed'}
         // Live Cover Letter text
         let liveCoverLetter = '';
         if (clBody) {
-            liveCoverLetter = Array.from(clBody.querySelectorAll('.cl-paragraph')).map(p => p.innerText.trim()).filter(Boolean).join('\n\n');
+            liveCoverLetter = Array.from(clBody.querySelectorAll(':scope > p')).map(p => p.innerText.trim()).filter(Boolean).join('\n\n');
         }
 
         // Live Job Description Context
@@ -6867,11 +7068,18 @@ ${clone.outerHTML}
         };
 
         const customSections = [];
+        const canonicalSectionIds = new Set([
+            'experience', 'work_experience', 'education', 'skills', 'summary',
+            'achievements', 'academic', 'awards', 'languages', 'referees',
+            'certifications', 'publications', 'volunteer', 'volunteer_experience',
+            'memberships', 'professional_memberships', 'contact', 'contact_information'
+        ]);
         document.querySelectorAll('.cv-section').forEach(sec => {
+            if (sec.id === 'secContactSidebar') return;
             const heading = sec.querySelector('.cv-section-heading');
             const headingText = heading ? heading.textContent.trim() : '';
             const secId = sec.getAttribute('data-sec-id') || 'custom';
-            if (secId === 'custom' || (!['experience', 'education', 'skills', 'summary', 'achievements', 'academic', 'awards', 'languages', 'referees'].includes(secId))) {
+            if (sec.classList.contains('dynamic-custom-section') || secId === 'custom' || !canonicalSectionIds.has(secId)) {
                 const textElem = sec.querySelector('.cv-text') || sec.querySelector('p');
                 const contentText = textElem ? textElem.textContent.trim() : sec.innerText.replace(headingText, '').trim();
                 if (headingText) {
@@ -6889,7 +7097,9 @@ ${clone.outerHTML}
                 const titleElem = item.querySelector('.cv-exp-title') || item.querySelector('h4');
                 const compElem = item.querySelector('.cv-exp-company') || item.querySelector('.cv-company-name');
                 const dateElem = item.querySelector('.cv-meta-row span') || item.querySelector('.cv-exp-date-right');
-                const bullets = Array.from(item.querySelectorAll('.cv-exp-bullets li, .cv-exp-bullet')).map(b => b.textContent.trim()).filter(Boolean);
+                const bullets = Array.from(item.querySelectorAll('.cv-exp-bullets li'))
+                    .map(row => (row.querySelector('.cv-exp-bullet') || row).textContent.trim())
+                    .filter(Boolean);
                 if (titleElem || compElem) {
                     parsedExp.push({
                         job_title: titleElem ? titleElem.textContent.trim() : "Role",
@@ -6943,28 +7153,40 @@ ${clone.outerHTML}
         // Collect live certifications
         let liveCerts = baseTailored.certifications || [];
         const certNodes = document.querySelectorAll('#cvCertifications .cv-ach-desc');
-        if (certNodes.length > 0) {
+        const certList = document.querySelector('#cvCertifications .cv-editable-list');
+        if (certList) {
+            liveCerts = Array.from(certList.querySelectorAll(':scope > li')).map(node => node.textContent.trim()).filter(Boolean);
+        } else if (certNodes.length > 0) {
             liveCerts = Array.from(certNodes).map(n => n.textContent.trim()).filter(Boolean);
         }
 
         // Collect live publications
         let livePubs = baseTailored.publications || [];
         const pubNodes = document.querySelectorAll('#cvPublications .cv-ach-desc');
-        if (pubNodes.length > 0) {
+        const pubList = document.querySelector('#cvPublications .cv-editable-list');
+        if (pubList) {
+            livePubs = Array.from(pubList.querySelectorAll(':scope > li')).map(node => node.textContent.trim()).filter(Boolean);
+        } else if (pubNodes.length > 0) {
             livePubs = Array.from(pubNodes).map(n => n.textContent.trim()).filter(Boolean);
         }
 
         // Collect live volunteer
         let liveVol = baseTailored.volunteer_experience || [];
         const volNodes = document.querySelectorAll('#cvVolunteer .cv-ach-desc');
-        if (volNodes.length > 0) {
+        const volunteerList = document.querySelector('#cvVolunteer .cv-editable-list');
+        if (volunteerList) {
+            liveVol = Array.from(volunteerList.querySelectorAll(':scope > li')).map(node => node.textContent.trim()).filter(Boolean);
+        } else if (volNodes.length > 0) {
             liveVol = Array.from(volNodes).map(n => n.textContent.trim()).filter(Boolean);
         }
 
         // Collect live memberships
         let liveMems = baseTailored.professional_memberships || [];
         const memNodes = document.querySelectorAll('#cvMemberships .cv-ach-desc');
-        if (memNodes.length > 0) {
+        const membershipList = document.querySelector('#cvMemberships .cv-editable-list');
+        if (membershipList) {
+            liveMems = Array.from(membershipList.querySelectorAll(':scope > li')).map(node => node.textContent.trim()).filter(Boolean);
+        } else if (memNodes.length > 0) {
             liveMems = Array.from(memNodes).map(n => n.textContent.trim()).filter(Boolean);
         }
 
@@ -6976,23 +7198,26 @@ ${clone.outerHTML}
             dynamicSecNodes.forEach(ds => {
                 const headingElem = ds.querySelector('.cv-section-heading');
                 const title = headingElem ? headingElem.textContent.trim() : 'Additional Section';
-                const itemNodes = ds.querySelectorAll('.cv-custom-item-text, .cv-custom-chip-text, .cv-ach-desc');
+                const itemNodes = ds.querySelectorAll('.cv-custom-item-text, .cv-custom-chip-text, .cv-ach-desc, .cv-custom-editable-list > li');
                 const pElem = ds.querySelector('p.cv-text, p.cv-custom-para');
                 const col = (cvLeftCol && cvLeftCol.contains(ds)) ? 'left' : 'right';
+                const contentFormat = ds.dataset.contentFormat || (pElem ? 'paragraph' : 'list');
 
                 if (itemNodes.length > 0) {
                     parsedCustom.push({
                         title: title,
                         items: Array.from(itemNodes).map(n => n.textContent.trim()).filter(Boolean),
                         content: "",
-                        column: col
+                        column: col,
+                        content_format: contentFormat
                     });
                 } else if (pElem) {
                     parsedCustom.push({
                         title: title,
                         items: [],
                         content: pElem.textContent.trim(),
-                        column: col
+                        column: col,
+                        content_format: contentFormat
                     });
                 }
             });
@@ -7741,7 +7966,7 @@ ${clone.outerHTML}
         if (!bodyElem) return;
 
         const salutation = salutationElem ? salutationElem.textContent.trim() : 'Dear Hiring Team,';
-        const paragraphs = Array.from(bodyElem.querySelectorAll('.cl-paragraph')).map(p => p.textContent.trim()).join('\n\n');
+        const paragraphs = Array.from(bodyElem.querySelectorAll(':scope > p')).map(p => p.textContent.trim()).join('\n\n');
         const signoff = signoffElem ? signoffElem.textContent.trim() : 'Sincerely,';
         const name = nameElem ? nameElem.textContent.trim() : 'Candidate';
 
@@ -7756,7 +7981,7 @@ ${clone.outerHTML}
     window.downloadCoverLetterDocx = function() {
         const bodyElem = document.getElementById('clBody');
         const salutation = document.getElementById('clSalutation') ? document.getElementById('clSalutation').textContent.trim() : 'Dear Hiring Team,';
-        const paragraphs = Array.from(bodyElem.querySelectorAll('.cl-paragraph')).map(p => `<p style="margin-bottom:12pt;line-height:1.2;">${escapeHtml(p.textContent.trim())}</p>`).join('');
+        const paragraphs = Array.from(bodyElem.querySelectorAll(':scope > p')).map(p => `<p style="margin-bottom:12pt;line-height:1.2;">${escapeHtml(p.textContent.trim())}</p>`).join('');
         const signoff = document.getElementById('clSignoff') ? document.getElementById('clSignoff').textContent.trim() : 'Sincerely,';
         const name = (document.getElementById('clSignatureName') || document.getElementById('clFullName')).textContent.trim();
 
@@ -7913,28 +8138,34 @@ ${clone.outerHTML}
     const advSpace10 = document.getElementById('advSpace10');
     const advSpace115 = document.getElementById('advSpace115');
     const advSpace125 = document.getElementById('advSpace125');
-    if (advSpace10 && lineHeightSelect) {
+    const applyAdvancedLineHeight = value => {
+        const canvas = currentDocMode === 'cl' ? coverLetterSheet : resumePreviewCanvas;
+        if (!canvas) return;
+        canvas.style.lineHeight = value;
+        canvas.querySelectorAll('.cv-text, .cv-exp-bullet, .cv-exp-item, .cv-edu-item, .cv-academic-item, .cl-paragraph').forEach(element => {
+            element.style.lineHeight = value;
+        });
+        showStudioToast(`Line height set to ${value}`);
+    };
+    if (advSpace10) {
         advSpace10.addEventListener('click', () => {
-            lineHeightSelect.value = '1.0';
-            lineHeightSelect.dispatchEvent(new Event('change'));
+            applyAdvancedLineHeight('1.0');
             advSpace10.className = 'btn btn-xs btn-primary';
             if (advSpace115) advSpace115.className = 'btn btn-xs btn-outline';
             if (advSpace125) advSpace125.className = 'btn btn-xs btn-outline';
         });
     }
-    if (advSpace115 && lineHeightSelect) {
+    if (advSpace115) {
         advSpace115.addEventListener('click', () => {
-            lineHeightSelect.value = '1.15';
-            lineHeightSelect.dispatchEvent(new Event('change'));
+            applyAdvancedLineHeight('1.15');
             advSpace115.className = 'btn btn-xs btn-primary';
             if (advSpace10) advSpace10.className = 'btn btn-xs btn-outline';
             if (advSpace125) advSpace125.className = 'btn btn-xs btn-outline';
         });
     }
-    if (advSpace125 && lineHeightSelect) {
+    if (advSpace125) {
         advSpace125.addEventListener('click', () => {
-            lineHeightSelect.value = '1.25';
-            lineHeightSelect.dispatchEvent(new Event('change'));
+            applyAdvancedLineHeight('1.25');
             advSpace125.className = 'btn btn-xs btn-primary';
             if (advSpace10) advSpace10.className = 'btn btn-xs btn-outline';
             if (advSpace115) advSpace115.className = 'btn btn-xs btn-outline';
@@ -8296,6 +8527,65 @@ ${clone.outerHTML}
         const profileHeading = document.getElementById('detectedProfileHeading');
         if (profileHeading) profileHeading.textContent = recResult.detected_profile || recResult.candidate_profile || "Senior Professional";
 
+        const sectionStatusGrid = document.getElementById('sectionStatusGrid');
+        if (sectionStatusGrid) {
+            const libraryItems = SECTION_LIBRARY.flatMap(group => group.items);
+            const visibleSections = Array.from(resumePreviewCanvas.querySelectorAll('.cv-section:not(.hidden)'));
+            const included = visibleSections.map(section => ({
+                title: section.querySelector('.cv-section-heading')?.textContent.trim() || section.dataset.secId || 'Section',
+                id: section.dataset.secId || ''
+            }));
+            if (resumePreviewCanvas.querySelector('#secContactSidebar')) included.push({ title: 'Contact Information', id: 'contact' });
+            const sectionAliases = {
+                work_experience: ['experience'],
+                professional_references: ['referees'],
+                references: ['referees'],
+                contact_information: ['contact'],
+                professional_summary: ['summary'],
+                professional_profile_summary: ['summary'],
+                core_skills: ['skills']
+            };
+            const normalizeSection = value => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const includedIds = new Set(included.flatMap(section => [section.id, ...(sectionAliases[section.id] || [])].map(normalizeSection)));
+            const includedTitles = new Set(included.map(section => normalizeSection(section.title)));
+            const omittedMap = new Map();
+            const addOmitted = (title, id = '') => {
+                const normalizedTitle = String(title || '').trim();
+                if (!normalizedTitle) return;
+                const normalizedId = normalizeSection(id || normalizedTitle);
+                const key = normalizedId;
+                const aliases = sectionAliases[id] || [];
+                if (includedIds.has(normalizedId) || aliases.some(alias => includedIds.has(normalizeSection(alias))) || includedTitles.has(normalizeSection(normalizedTitle)) || omittedMap.has(key)) return;
+                const libraryEntry = libraryItems.find(item => item.id === id || item.title.toLowerCase() === normalizedTitle.toLowerCase());
+                omittedMap.set(key, { title: libraryEntry?.title || normalizedTitle, id: libraryEntry?.id || id });
+            };
+            (recResult.recommended_sections || recResult.recommended_core || []).forEach(section => {
+                addOmitted(section.display_title || section.title || section.section_type || section.type, section.section_type || section.type || '');
+            });
+            const sourceData = data || lastOptimizationResult || {};
+            [...(sourceData.tailored_cv?.sections || []), ...(sourceData.parsed_resume?.sections || [])]
+                .filter(section => section && section.is_visible === false)
+                .forEach(section => addOmitted(section.title || section.canonical_type, section.canonical_type || ''));
+            libraryItems.forEach(item => addOmitted(item.title, item.id));
+
+            sectionStatusGrid.innerHTML = `
+                <section class="section-status-pane">
+                    <h4>Included in this CV <span>${included.length}</span></h4>
+                    <div class="section-status-list">${included.map(section => `<div class="section-status-item"><span class="section-status-dot included"></span><span>${escapeHtml(section.title)}</span></div>`).join('')}</div>
+                </section>
+                <section class="section-status-pane">
+                    <h4>Detected or available, not included <span>${omittedMap.size}</span></h4>
+                    <div class="section-status-list">${Array.from(omittedMap.values()).map(section => `<div class="section-status-item"><span>${escapeHtml(section.title)}</span><button type="button" class="btn-status-add" data-title="${escapeHtml(section.title)}">Add</button></div>`).join('') || '<span class="section-status-empty">No omitted sections detected.</span>'}</div>
+                </section>
+            `;
+            sectionStatusGrid.querySelectorAll('.btn-status-add').forEach(button => {
+                button.addEventListener('click', () => {
+                    addSectionToDocument(button.dataset.title, [], 'right');
+                    renderSectionManagerModal(data);
+                });
+            });
+        }
+
         const recGrid = document.getElementById('recommendedSectionsGrid');
         if (recGrid) {
             const recList = recResult.recommended_sections || recResult.recommended_core || [];
@@ -8399,24 +8689,31 @@ ${clone.outerHTML}
         btnSubmitAddCustomSec.addEventListener('click', () => {
             const titleInput = document.getElementById('newCustomSecTitle');
             const contentInput = document.getElementById('newCustomSecContent');
+            const formatSelect = document.getElementById('newCustomSecFormat');
             const title = (titleInput && titleInput.value.trim()) || 'Additional Section';
             const rawContent = (contentInput && contentInput.value.trim()) || '';
-            const bullets = rawContent ? rawContent.split('\n').map(s => s.replace(/^[\-\*\•\–]\s*/, '').trim()).filter(Boolean) : [];
+            const contentFormat = formatSelect?.value || 'list';
+            const bullets = contentFormat === 'list' && rawContent
+                ? rawContent.split('\n').map(s => s.replace(/^[\-\*\•\–]\s*/, '').trim()).filter(Boolean)
+                : [];
 
-            addSectionToDocument(title, bullets, customSecPrefCol);
+            addSectionToDocument(title, bullets, customSecPrefCol, contentFormat, rawContent);
             if (titleInput) titleInput.value = '';
             if (contentInput) contentInput.value = '';
             if (sectionManagerModal) sectionManagerModal.classList.add('hidden');
         });
     }
 
-    function addSectionToDocument(title, initialItems = [], colPref = 'right') {
+    function addSectionToDocument(title, initialItems = [], colPref = 'right', contentFormat = 'list', initialContent = '') {
         const secElem = document.createElement('section');
         secElem.className = 'cv-section dynamic-custom-section';
         secElem.setAttribute('data-sec-id', 'custom_' + Date.now());
         secElem.setAttribute('data-col-pref', colPref);
 
-        const innerBody = renderCustomSectionContent(title, initialItems, '');
+        secElem.setAttribute('data-content-format', contentFormat);
+        const innerBody = window.renderCustomSectionContent
+            ? window.renderCustomSectionContent(title, initialItems, initialContent, contentFormat)
+            : '';
         secElem.innerHTML = `
             <div class="cv-section-header-row">
                 <div class="sec-heading-group">
@@ -8440,7 +8737,7 @@ ${clone.outerHTML}
                     </button>
                 </div>
             </div>
-            ${innerBody || '<div class="cv-custom-list"><div class="cv-custom-item cv-bullet-item"><span class="bullet-dot">•</span><div class="cv-custom-item-text" contenteditable="true">Click to edit bullet or entry detail</div></div></div>'}
+            ${innerBody || `<ul class="cv-editable-list cv-custom-editable-list" contenteditable="true" aria-label="${escapeAttr(title)}"><li>Click to add content</li></ul>`}
         `;
 
         if (colPref === 'left' && cvLeftCol) {

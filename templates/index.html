@@ -6,14 +6,12 @@
     <meta name="description" content="Free CV Optimizer - Tailor and optimize your resume for ATS systems, keyword alignment, and hiring managers with 100% free Word & PDF export.">
     <meta name="keywords" content="free cv optimizer, ats resume optimizer, free resume builder, cv tailoring, ats keyword matcher">
     <title>CV Studio | Free ATS Resume Builder & Optimizer</title>
-    <link rel="icon" type="image/jpeg" href="static/favicon.jpg">
-    <link rel="shortcut icon" href="static/favicon.jpg">
-    <link rel="apple-touch-icon" href="static/favicon.jpg">
+    <link rel="icon" type="image/svg+xml" href="static/favicon.svg?v=1">
+    <link rel="apple-touch-icon" href="static/favicon.svg?v=1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..800&family=Cinzel:wght@400;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=EB+Garamond:ital,wght@0,400..700;1,400..700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Jost:ital,wght@0,300..800;1,300..800&family=Lato:wght@300;400;700;900&family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Montserrat:wght@300;400;500;600;700;800&family=Nunito+Sans:ital,opsz,wght@0,6..12,400..800;1,6..12,400..800&family=Open+Sans:wght@300;400;600;700;800&family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&family=Raleway:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="static/styles.css?v=8.0.0">
-    <!-- Direct Client-Side PDF Generation -->
+    <link rel="stylesheet" href="static/styles.css?v=8.2.2">
     <script src="static/html2pdf.bundle.min.js"></script>
 </head>
 <body class="font-outfit">
@@ -24,7 +22,7 @@
             <div class="nav-brand-group">
                 <div class="nav-brand" id="navBrandBtn" role="banner" style="cursor: pointer;" title="Back to Home">
                     <div class="brand-icon">
-                        <img src="static/favicon.jpg" alt="CV Studio Logo" width="20" height="20" style="object-fit:contain;display:block;">
+                        <span aria-hidden="true">CV</span>
                     </div>
                     <span class="brand-title">CV Studio</span>
                 </div>
@@ -616,8 +614,8 @@
         <footer class="lp-footer">
             <div class="lp-footer-container">
                 <div class="lp-footer-left">
-                    <div class="brand-icon" style="width: 26px; height: 26px; background: transparent;">
-                        <img src="static/favicon.jpg" alt="CV Studio" width="26" height="26" style="object-fit:contain;display:block;border-radius:4px;">
+                    <div class="brand-icon" style="width: 26px; height: 26px;">
+                        <span aria-hidden="true">CV</span>
                     </div>
                     <span style="font-weight: 700; color: #ffffff;">CV Studio</span>
                     <span>&copy; 2026 Tanui Sila. Engineering Portfolio Project • Non-Commercial.</span>
@@ -655,17 +653,6 @@
                     <button type="button" class="btn-change-template" onclick="window.switchView('landing'); setTimeout(() => document.getElementById('lp-templates')?.scrollIntoView({behavior: 'smooth'}), 120);">Change</button>
                 </div>
 
-                <!-- Demo Mode Notification Bar (Hidden unless demo candidate loaded) -->
-                <div id="demoModeBar" class="demo-mode-indicator-bar hidden">
-                    <div class="demo-bar-left">
-                        <span class="demo-badge">Sample Profile Loaded</span>
-                        <span class="demo-bar-text"><strong id="demoBarName">Sofia Katharina Berger</strong> <span class="demo-bar-role" id="demoBarRole">(Senior Consultant)</span></span>
-                    </div>
-                    <button type="button" class="btn-demo-clear" onclick="window.clearDemoMode()" title="Clear sample profile">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                        <span>Clear</span>
-                    </button>
-                </div>
             </div>
 
             <!-- Two-Column Clean Card Layout -->
@@ -910,10 +897,10 @@
                     </div>
                 </div>
 
-                <!-- ROW 2: Collapsible Contextual Formatting Ribbon (Font, Size, Spacing, Styles, Alignment, Lists, Colors) -->
+                <!-- ROW 2: Collapsible Contextual Formatting Ribbon -->
                 <div class="studio-formatting-bar" id="formattingToolsCluster">
                     
-                    <!-- Typography Section: Font, Size, Spacing -->
+                    <!-- Typography Section: Font and Size -->
                     <div class="ribbon-cluster">
                         <!-- Word-Style Interactive Font Selector -->
                         <div class="tb-select-wrap font-picker-custom-wrapper" id="fontPickerWrapper">
@@ -1251,25 +1238,21 @@
                             </div>
                         </div>
 
-                        <!-- Line Spacing -->
-                        <div class="tb-select-wrap">
-                            <span class="tb-select-label font-outfit" style="font-family: 'Outfit', sans-serif !important;">SPACING</span>
-                            <div class="tb-select-inner">
-                                <select id="lineHeightSelect" class="tb-select font-outfit" style="font-family: 'Outfit', sans-serif !important;" title="Adjust Line Height / Spacing">
-                                    <option value="1.15">Tight (1.15)</option>
-                                    <option value="1.35">Normal (1.35)</option>
-                                    <option value="1.4" selected>Default (1.4)</option>
-                                    <option value="1.55">Relaxed (1.55)</option>
-                                    <option value="1.75">Loose (1.75)</option>
-                                </select>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="tb-divider"></div>
 
                     <!-- Inline Text Styles: B, I, U -->
                     <div class="ribbon-cluster">
+                        <label class="tb-select-wrap text-case-picker" title="Change text case">
+                            <span class="tb-select-label">TEXT CASE</span>
+                            <select id="textTransformSelect" class="tb-select" aria-label="Text case">
+                                <option value="none">Aa</option>
+                                <option value="uppercase">AA</option>
+                                <option value="lowercase">aa</option>
+                                <option value="capitalize">Title Case</option>
+                            </select>
+                        </label>
                         <div class="tb-inline-icons" id="styleBtnGroup">
                             <button type="button" class="btn-format tb-icon-btn tb-format-btn" data-format="bold" id="btnFormatBold" title="Bold (Ctrl+B)"><strong>B</strong></button>
                             <button type="button" class="btn-format tb-icon-btn tb-format-btn" data-format="italic" id="btnFormatItalic" title="Italic (Ctrl+I)"><em>I</em></button>
@@ -1366,24 +1349,32 @@
                         <label class="tb-color-btn tb-color-label" title="Change Section Heading Accent Color">
                             <span class="tb-color-letter heading-char">H</span>
                             <span class="tb-color-indicator tb-heading-bar"></span>
-                            <input type="color" id="headingColorPicker" value="#009688" class="color-picker-input">
+                            <input type="color" id="headingColorPicker" value="#ff0ad3" class="color-picker-input">
                         </label>
-                        <label class="tb-select-wrap cv-theme-picker" title="Apply a professional accent theme">
+                        <div class="cv-theme-picker" role="group" aria-label="CV accent color swatches">
                             <span class="tb-select-label">THEME</span>
-                            <select id="accentThemeSelect" class="tb-select">
-                                <option value="#18324a">Classic Navy</option>
-                                <option value="#245b8f">Professional Blue</option>
-                                <option value="#285943">Deep Green</option>
-                                <option value="#7a2638">Burgundy</option>
-                                <option value="#374151">Charcoal</option>
-                                <option value="#176b73">Teal</option>
-                                <option value="#5b3a82">Royal Purple</option>
-                                <option value="#526273">Slate</option>
-                                <option value="#795548">Warm Brown</option>
-                                <option value="#111827">Minimal Black</option>
-                                <option value="custom">Custom</option>
-                            </select>
-                        </label>
+                            <div class="cv-theme-swatches" id="accentThemeSwatches">
+                                <button type="button" class="cv-theme-swatch" data-color="#ff0ad3" data-name="Studio Pink" title="Studio Pink" aria-label="Studio Pink" aria-pressed="false"></button>
+                                <button type="button" class="cv-theme-swatch" data-color="#18324a" data-name="Classic Navy" title="Classic Navy" aria-label="Classic Navy" aria-pressed="false"></button>
+                                <button type="button" class="cv-theme-swatch" data-color="#245b8f" data-name="Professional Blue" title="Professional Blue" aria-label="Professional Blue" aria-pressed="false"></button>
+                                <button type="button" class="cv-theme-swatch" data-color="#285943" data-name="Deep Green" title="Deep Green" aria-label="Deep Green" aria-pressed="false"></button>
+                                <button type="button" class="cv-theme-swatch" data-color="#7a2638" data-name="Burgundy" title="Burgundy" aria-label="Burgundy" aria-pressed="false"></button>
+                                <button type="button" class="cv-theme-swatch" data-color="#374151" data-name="Charcoal" title="Charcoal" aria-label="Charcoal" aria-pressed="false"></button>
+                                <button type="button" class="cv-theme-swatch" data-color="#176b73" data-name="Teal" title="Teal" aria-label="Teal" aria-pressed="false"></button>
+                                <button type="button" class="cv-theme-swatch" data-color="#5b3a82" data-name="Royal Purple" title="Royal Purple" aria-label="Royal Purple" aria-pressed="false"></button>
+                                <button type="button" class="cv-theme-swatch" data-color="#526273" data-name="Slate" title="Slate" aria-label="Slate" aria-pressed="false"></button>
+                                <button type="button" class="cv-theme-swatch" data-color="#795548" data-name="Warm Brown" title="Warm Brown" aria-label="Warm Brown" aria-pressed="false"></button>
+                                <button type="button" class="cv-theme-swatch" data-color="#111827" data-name="Minimal Black" title="Minimal Black" aria-label="Minimal Black" aria-pressed="false"></button>
+                            </div>
+                            <label class="cv-theme-add" title="Add a custom theme color">
+                                <span aria-hidden="true">+</span>
+                                <input type="color" id="addThemeColorPicker" value="#ff0ad3" aria-label="Choose and add a custom theme color">
+                            </label>
+                        </div>
+                        <button type="button" class="tb-btn-review is-hidden-mode" id="toggleVisualReviewBtn" title="Show AI match highlights and suggested changes on the CV" aria-pressed="false">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <span id="topReviewBtnLabel">Show Match Review</span>
+                        </button>
                     </div>
 
                 </div>
@@ -1998,7 +1989,6 @@
                                             <button type="button" class="btn-sec-action btn-sec-dup" title="Duplicate Section">
                                                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                                             </button>
-                                            <button type="button" class="btn-sec-action btn-add-skill-cat" title="Add skill category">+ Add Skill Group</button>
                                             <button type="button" class="btn-sec-action btn-remove-sec" title="Remove this section">
                                                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                             </button>
@@ -3481,7 +3471,7 @@
                                     <h4 class="tpl-card-name">Template 6: Slate Teal Sidebar</h4>
                                     <span class="badge-active-tpl hidden" id="badgeTpl6">ACTIVE</span>
                                 </div>
-                                <p class="tpl-card-desc">Aisha Rahman style with deep slate-teal rounded sidebar, icon badges, tracked modern header, & 11pt typography.</p>
+                                <p class="tpl-card-desc">Slate-teal profile rail with crisp contact groups, soft teal section rules, and readable experience spacing.</p>
                                 <button type="button" class="btn btn-xs btn-outline btn-select-tpl">Select Template</button>
                             </div>
                         </div>
@@ -4200,6 +4190,7 @@
                         </div>
                         <span class="badge" style="background: #0f172a; color: #fff; font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 0;">AI Analyzed</span>
                     </div>
+                    <div id="sectionStatusGrid" class="section-status-grid"></div>
                     <div id="recommendedSectionsGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
                         <!-- Populated by JS -->
                     </div>
@@ -4225,6 +4216,13 @@
                         <div>
                             <label style="font-size: 0.8rem; font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Initial Content / Bullets (One per line)</label>
                             <textarea id="newCustomSecContent" rows="4" placeholder="Enter bullet points, credentials, or text for this section..." style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 0; font-size: 0.85rem; font-family: inherit;"></textarea>
+                        </div>
+                        <div>
+                            <label for="newCustomSecFormat" style="font-size: 0.8rem; font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Content layout</label>
+                            <select id="newCustomSecFormat" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #cbd5e1; background: #fff; font-size: 0.85rem;">
+                                <option value="list">One editable bulleted list</option>
+                                <option value="paragraph">Continuous paragraph</option>
+                            </select>
                         </div>
                         <div>
                             <label style="font-size: 0.8rem; font-weight: 700; display: block; margin-bottom: 4px; color: #334155;">Preferred Column Placement</label>
@@ -4323,7 +4321,7 @@
     </script>
     <!-- Hidden Profile Avatar File Upload Input -->
     <input type="file" id="avatarImageUploadInput" accept="image/*" style="display: none;">
-    <script src="static/app.js?v=7.4.7"></script>
+    <script src="static/app.js?v=7.4.29"></script>
 </body>
 </html>
 
