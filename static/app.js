@@ -818,7 +818,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'template_2_teal': 'Modern Executive (Teal)',
             'template_1_blue': 'Executive Blue',
             'template_3_navy': 'Navy Sidebar',
-            'template_6_classic': 'Classic Academic (Harvard)'
+            'template_14_academic': 'Classic Academic (Harvard)'
         };
         if (nameEl && tplNames[templateId]) {
             nameEl.textContent = tplNames[templateId];
@@ -4795,6 +4795,8 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleVisualReviewSideBtn.addEventListener('click', () => {
             setVisualReviewState(!isVisualReviewActive);
         });
+    }
+
     function getCleanSummaryText() {
         const sumElem = document.getElementById('cvSummary') || document.querySelector('.cv-summary-text') || document.querySelector('#secSummary .cv-text');
         if (!sumElem) return (window.lastEditedSummary || '');
@@ -6758,7 +6760,10 @@ ${languages.join(', ') || 'None listed'}
 
             // Collect all stylesheet texts from the page to inject into the iframe
             const sheetTexts = [];
+            const googleFontStylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"][href*="fonts.googleapis.com"]'))
+                .map(link => link.href);
             for (const sheet of Array.from(document.styleSheets)) {
+                if (sheet.href && sheet.href.includes('fonts.googleapis.com')) continue;
                 try {
                     const rules = Array.from(sheet.cssRules || []).map(r => r.cssText).join('\n');
                     sheetTexts.push(rules);
@@ -6825,6 +6830,7 @@ ${languages.join(', ') || 'None listed'}
 <head>
 <meta charset="UTF-8">
 <title>${pdfFilename.replace(/\.pdf$/i, '')}</title>
+${googleFontStylesheets.map(href => `<link rel="stylesheet" href="${href}" data-pdf-fonts>`).join('\n')}
 <style>
 ${sheetTexts.join('\n')}
 
@@ -6946,12 +6952,30 @@ mark, .cv-match-highlight, .cv-edu-match, .cv-gap-highlight,
 ${clone.outerHTML}
 </body>
 </html>`);
+            const fontStylesheetLoads = Array.from(iDoc.querySelectorAll('link[data-pdf-fonts]')).map(link => new Promise(resolve => {
+                let timer;
+                const finish = () => {
+                    clearTimeout(timer);
+                    resolve();
+                };
+                link.addEventListener('load', finish, { once: true });
+                link.addEventListener('error', finish, { once: true });
+                timer = setTimeout(finish, 5000);
+            }));
             iDoc.close();
 
             const triggerPrint = async () => {
                 try {
+                    const fontLoadSpec = `12px "${currentFont}"`;
+                    await Promise.all(fontStylesheetLoads);
                     if (document.fonts && document.fonts.ready) {
                         await document.fonts.ready;
+                    }
+                    if (document.fonts && document.fonts.load) {
+                        await document.fonts.load(fontLoadSpec);
+                    }
+                    if (iDoc.fonts && iDoc.fonts.load) {
+                        await iDoc.fonts.load(fontLoadSpec);
                     }
                     if (iDoc.fonts && iDoc.fonts.ready) {
                         await iDoc.fonts.ready;
